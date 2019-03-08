@@ -30,11 +30,11 @@ fn main() -> Result<(), Error> {
         .get_matches();
 
     let command = matches.value_of("COMMAND").unwrap();
-    let size = value_t!(matches, "size", usize).unwrap_or(5);
+    let size = value_t!(matches, "size", usize).unwrap_or(10);
     let result = run(command, size)?;
     
-    Command::new(result.0.clone())
-        .args(result.1.clone())
+    Command::new(result.0)
+        .args(result.1)
         .spawn()?
         .wait()?;
 

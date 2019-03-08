@@ -1,5 +1,5 @@
 use std::io::Write;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 use termion;
 use terminal_size::terminal_size;
@@ -26,7 +26,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let cmd = Command::new("sh")
             .arg("-c")
             .arg(format!("man {} | col -bx", command))
-            .stdout(Stdio::null())
             .output()
             .expect("failed to execute process");
 
