@@ -1,0 +1,17 @@
+[package]
+name = "man-with"
+version = "0.1.0"
+authors = ["uzushino <torattoria.mamiya@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+termion = "1.5.1"
+failure = "0.1.1"
+failure_derive = "0.1.1"
+unicode-width = "0.1.5"
+terminal_size = "*"
+libc = "0.2.40"
+env_logger = "0.5.13"
+rayon = "*"
+clap = "2.32.0"
+strip-ansi-escapes = "0.1.0"
