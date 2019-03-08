@@ -1,13 +1,13 @@
+extern crate env_logger;
 extern crate failure;
 extern crate libc;
 extern crate terminal_size;
 extern crate termion;
 extern crate unicode_width;
-extern crate env_logger;
 
 use std::fs::File;
-use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::io::{self, BufRead, BufReader, Stdout};
+use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::sync::{
     mpsc::{self, Receiver, Sender},
     Arc, Mutex,
@@ -36,7 +36,7 @@ impl ManWith {
         let source = source();
         let stdout = stdout.into_raw_mode().unwrap();
         let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height)));
-        
+
         ManWith {
             source: Arc::new(Mutex::new(source)),
             prompt: prompt,

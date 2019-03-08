@@ -6,7 +6,7 @@ pub enum Event {
     Backspace,
     Down,
     Up,
-    Next, 
-    Prev, 
+    Next,
+    Prev,
     Quit,
 }

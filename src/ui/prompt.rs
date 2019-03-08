@@ -1,8 +1,8 @@
 use std::io::Write;
 use std::process::Command;
 
-use termion;
 use terminal_size::terminal_size;
+use termion;
 
 use crate::ui::cursor;
 
@@ -33,7 +33,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let s = String::from_utf8_lossy(&out);
 
         Prompt {
-            panel: vec![String::new();height],
+            panel: vec![String::new(); height],
             input: String::new(),
             command: String::from(command),
             argument: Vec::new(),
@@ -52,7 +52,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos += 1;
         }
     }
-    
+
     pub fn up(&mut self) {
         let pos = self.pos as i64;
 
@@ -62,7 +62,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos -= 1;
         }
     }
-    
+
     pub fn next(&mut self) {
         let s = self.pos + 1;
         let b = &self.buffer[s..self.buffer.len()];
@@ -84,16 +84,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     fn viewpoint(&self) -> (usize, usize) {
         let (s, e) = if self.pos + self.size > self.buffer.len() {
-                      ((self.buffer.len() as isize) - (self.size as isize), self.buffer.len() as isize)
-                    } else {
-                        (self.pos as isize, (self.pos + self.size) as isize)
-                    };
-        let s = if s < 0 {
-            0
+            (
+                (self.buffer.len() as isize) - (self.size as isize),
+                self.buffer.len() as isize,
+            )
         } else {
-            s
+            (self.pos as isize, (self.pos + self.size) as isize)
         };
-        
+        let s = if s < 0 { 0 } else { s };
+
         (s as usize, e as usize)
     }
 
@@ -129,13 +128,23 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn prompt() -> String {
-        format!("{}{}{}", termion::style::Bold, PROMPT, termion::style::Reset)
+        format!(
+            "{}{}{}",
+            termion::style::Bold,
+            PROMPT,
+            termion::style::Reset
+        )
     }
 
     pub fn show_command(&mut self) -> Result<(), std::io::Error> {
-        write!(self.stdout, "COMMAND> {} {}", self.command, self.argument.join(" "))
+        write!(
+            self.stdout,
+            "COMMAND> {} {}",
+            self.command,
+            self.argument.join(" ")
+        )
     }
-    
+
     pub fn show_input(&mut self) -> Result<usize, std::io::Error> {
         let p = format!("{}{}", Self::prompt(), self.input);
         self.stdout.write(p.as_bytes())
@@ -144,19 +153,21 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn show_candidates(&mut self) -> Vec<String> {
         let (s, e) = self.viewpoint();
         let mut buffer = self.buffer.clone();
-        let decorated = format!("{red}{input}{reset}", 
-            red = termion::color::Fg(termion::color::Red), 
-            input = self.input, 
-            reset = termion::style::Reset);
+        let decorated = format!(
+            "{red}{input}{reset}",
+            red = termion::color::Fg(termion::color::Red),
+            input = self.input,
+            reset = termion::style::Reset
+        );
         buffer[self.pos] = buffer[self.pos].replace(&self.input, &decorated);
 
         let lines = &buffer[s..e];
         for l in lines {
             self.stdout.write(l.as_bytes()).unwrap();
-            
+
             cursor::down(&mut self.stdout, 1);
             cursor::holizon(&mut self.stdout, 1);
-        };
+        }
 
         Vec::from(lines)
     }
@@ -180,7 +191,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
             // Move cursor input position.
             cursor::up(&mut self.stdout, 2u64);
-            cursor::holizon(&mut self.stdout, (PROMPT.len() + self.input.len() + 1) as u64);
+            cursor::holizon(
+                &mut self.stdout,
+                (PROMPT.len() + self.input.len() + 1) as u64,
+            );
         }
 
         Ok(())
@@ -207,7 +221,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             cursor::holizon(&mut self.stdout, 1);
             cursor::clear_line(&mut self.stdout);
             self.stdout.write(b"\n")?;
-        };
+        }
 
         cursor::holizon(&mut self.stdout, 1);
         cursor::up(&mut self.stdout, (self.size + 2) as u64); // panel + input + command

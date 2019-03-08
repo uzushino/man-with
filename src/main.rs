@@ -2,14 +2,14 @@
 extern crate clap;
 extern crate env_logger;
 extern crate failure;
+extern crate man_with;
 extern crate terminal_size;
 extern crate termion;
-extern crate man_with;
 extern crate unicode_width;
 
 use std::process::Command;
 
-use clap::{Arg, App};
+use clap::{App, Arg};
 use failure::Error;
 use man_with::ManWith;
 
@@ -18,25 +18,26 @@ fn main() -> Result<(), Error> {
 
     let matches = App::new("Man with a command")
         .version(crate_version!())
-        .arg(Arg::with_name("COMMAND")
-            .required(true)
-            .help("Sets the man command")
-            .index(1))
-        .arg(Arg::with_name("size")
-            .long("size")
-            .value_name("SIZE")
-            .help("Sets the man viewer size.")
-            .takes_value(true))
+        .arg(
+            Arg::with_name("COMMAND")
+                .required(true)
+                .help("Sets the man command")
+                .index(1),
+        )
+        .arg(
+            Arg::with_name("size")
+                .long("size")
+                .value_name("SIZE")
+                .help("Sets the man viewer size.")
+                .takes_value(true),
+        )
         .get_matches();
 
     let command = matches.value_of("COMMAND").unwrap();
     let size = value_t!(matches, "size", usize).unwrap_or(10);
     let result = run(command, size)?;
-    
-    Command::new(result.0)
-        .args(result.1)
-        .spawn()?
-        .wait()?;
+
+    Command::new(result.0).args(result.1).spawn()?.wait()?;
 
     Ok(())
 }
