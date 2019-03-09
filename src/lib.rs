@@ -112,7 +112,6 @@ impl ManWith {
                         });
                     }
                     Ok(Event::Key(ch)) => {
-                        // From keyboad.
                         let _ = prompt.lock().and_then(|mut f| {
                             f.insert(ch);
                             Ok(())

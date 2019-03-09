@@ -21,12 +21,13 @@ fn main() -> Result<(), Error> {
         .arg(
             Arg::with_name("COMMAND")
                 .required(true)
-                .help("Sets the man command")
+                .help("Sets the man command.")
                 .index(1),
         )
         .arg(
             Arg::with_name("size")
                 .long("size")
+                .short("s")
                 .value_name("SIZE")
                 .help("Sets the man viewer size.")
                 .takes_value(true),
@@ -43,7 +44,7 @@ fn main() -> Result<(), Error> {
 }
 
 // When dropping raw mode stdout, return to original stdout.
-fn run(command: &str, height: usize) -> Result<(String, Vec<String>), Error> {
-    let app = ManWith::new(command, height);
+fn run(command: &str, size: usize) -> Result<(String, Vec<String>), Error> {
+    let app = ManWith::new(command, size);
     app.run()
 }
