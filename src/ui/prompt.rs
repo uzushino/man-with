@@ -15,10 +15,18 @@ pub struct Prompt<T: Write + Send + Drop> {
     pub command: String,
     pub argument: Vec<String>,
     pub stdout: T,
+    completation: Option<String>,
     buffer: Vec<String>,
     cursor: usize,
     pos: usize,
     size: usize,
+}
+
+fn is_args(ch: char) -> bool {
+    match ch {
+        '-' | '_' | '=' => true,
+        _ => ch.is_ascii_alphabetic() || ch.is_ascii_digit()
+    }
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
@@ -45,6 +53,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             command: String::from(command),
             argument: Vec::new(),
             stdout: stdout,
+            completation: None,
             buffer: s.split('\n').map(|v| v.to_string()).collect(),
             cursor: 0,
             pos: 0,
@@ -129,6 +138,29 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
 
+    fn candidates(&self) -> Vec<String> {
+        let n = &self.input;
+        if n.is_empty() {
+            return Vec::default();
+        }
+
+        let hits = self.buffer.iter()
+            .filter(|line| line.contains(n))
+            .map(|line| line.split_whitespace().filter(|tok| tok.contains(n)))
+            .flatten()
+            .map(|token| token.matches(is_args).collect());
+        
+        hits.collect::<Vec<String>>()
+    }
+
+    pub fn completation(&mut self) {
+        if let Some(comp) = &self.completation {
+            self.input.push_str(&comp);
+            self.cursor += comp.len();
+            self.completation = None;
+        }
+    }
+
     pub fn find_position(&self, buffer: &Vec<String>) -> Option<usize> {
         let n = &self.input;
         buffer.iter().position(|v| v.contains(n))
@@ -157,7 +189,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
         self.stdout.write(p.as_bytes())
     }
 
-    pub fn show_candidates(&mut self) -> Vec<String> {
+    pub fn show_candidate(&mut self) -> Option<String> {
+        if let Some(c) = self.candidates().first() {
+            let comp = &c[self.input.len()..c.len()];
+            return Some(comp.to_string());
+        };
+        None
+    }
+
+    pub fn show_viewer(&mut self) -> Vec<String> {
         let (s, e) = self.viewpoint();
         let mut buffer = self.buffer.clone();
         let decorated = format!(
@@ -193,15 +233,25 @@ impl<T: Write + Send + Drop> Prompt<T> {
             cursor::down(&mut self.stdout, 1);
             cursor::holizon(&mut self.stdout, 1 as u64);
 
-            let lines = self.show_candidates();
+            let lines = self.show_viewer();
             cursor::up(&mut self.stdout, lines.len() as u64);
 
             // Move cursor input position.
             cursor::up(&mut self.stdout, 2u64);
-            cursor::holizon(
-                &mut self.stdout,
-                (PROMPT.len() + self.input.len() + 1) as u64,
-            );
+            cursor::holizon(&mut self.stdout, (PROMPT.len() + self.input.len() + 1) as u64);
+
+            if let Some(comp) = self.show_candidate() {
+                let s = format!(
+                    "{color}{comp}{reset}",
+                    color = termion::color::Fg(termion::color::Black),
+                    comp = comp,
+                    reset = termion::style::Reset
+                );
+                self.stdout.write(s.as_bytes())?;
+                self.completation = Some(comp);
+                
+                cursor::holizon(&mut self.stdout, (PROMPT.len() + self.input.len() + 1) as u64);
+            }
         }
 
         Ok(())

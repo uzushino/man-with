@@ -123,6 +123,12 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::Tab) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.completation();
+                            Ok(())
+                        });
+                    }
                     Ok(Event::Enter) => {
                         let mut f = prompt.lock().unwrap();
 

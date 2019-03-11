@@ -4,6 +4,7 @@ pub enum Event {
     Wise,
     Enter,
     Backspace,
+    Tab,
     Down,
     Up,
     Next,
