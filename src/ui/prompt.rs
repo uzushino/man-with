@@ -22,12 +22,19 @@ pub struct Prompt<T: Write + Send + Drop> {
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
-    pub fn new(stdout: T, command: &str, height: usize) -> Self {
-        let cmd = Command::new("sh")
-            .arg("-c")
-            .arg(format!("man {} | col -bx", command))
-            .output()
-            .expect("failed to execute process");
+    pub fn new(stdout: T, command: &str, height: usize, help: bool) -> Self {
+        let cmd = if help {
+            Command::new(command)
+                .arg("--help")
+                .output()
+                .expect("failed to execute process")
+        } else {
+            Command::new("sh")
+                .arg("-c")
+                .arg(format!("man {} | col -bx", command))
+                .output()
+                .expect("failed to execute process")
+        };
 
         let out = cmd.stdout;
         let s = String::from_utf8_lossy(&out);

@@ -31,11 +31,11 @@ pub struct ManWith {
 }
 
 impl ManWith {
-    pub fn new(cmd: &str, height: usize) -> Self {
+    pub fn new(cmd: &str, height: usize, help: bool) -> Self {
         let stdout = io::stdout();
         let source = source();
         let stdout = stdout.into_raw_mode().unwrap();
-        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height)));
+        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height, help)));
 
         ManWith {
             source: Arc::new(Mutex::new(source)),

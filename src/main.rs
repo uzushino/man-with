@@ -25,18 +25,29 @@ fn main() -> Result<(), Error> {
                 .index(1),
         )
         .arg(
-            Arg::with_name("size")
+            Arg::with_name("SIZE")
                 .long("size")
                 .short("s")
                 .value_name("SIZE")
                 .help("Sets the man viewer size.")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("USE_HELP")
+                .long("use_help")
+                .short("p")
+                .help("Using the --help instead of man command"),
+        )
         .get_matches();
 
     let command = matches.value_of("COMMAND").unwrap();
-    let size = value_t!(matches, "size", usize).unwrap_or(10);
-    let result = run(command, size)?;
+    let size = value_t!(matches, "SIZE", usize).unwrap_or(10);
+    let help = if matches.is_present("USE_HELP") {
+        true
+    } else {
+        false
+    };
+    let result = run(command, size, help)?;
 
     Command::new(result.0).args(result.1).spawn()?.wait()?;
 
@@ -44,7 +55,7 @@ fn main() -> Result<(), Error> {
 }
 
 // When dropping raw mode stdout, return to original stdout.
-fn run(command: &str, size: usize) -> Result<(String, Vec<String>), Error> {
-    let app = ManWith::new(command, size);
+fn run(command: &str, size: usize, help: bool) -> Result<(String, Vec<String>), Error> {
+    let app = ManWith::new(command, size, help);
     app.run()
 }

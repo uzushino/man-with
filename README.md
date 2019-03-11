@@ -17,11 +17,16 @@ $ man-with [OPTION] <COMMAND>
 
 ### Options
 
-#### --size <number>
+#### -s/--size <number>
 
 Default: 10
-
 Set number of lines of man page viewer.
+
+#### -p/--use_help
+
+Default: false
+Using the --help option instead of man command
+
 
 ## Available Keys
 
