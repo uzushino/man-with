@@ -6,7 +6,7 @@ use termion;
 
 use crate::ui::cursor;
 
-const PROMPT: &'static str = "PROMPT > ";
+const PROMPT: &'static str = "> ";
 
 #[derive(Clone)]
 pub struct Prompt<T: Write + Send + Drop> {
@@ -175,18 +175,26 @@ impl<T: Write + Send + Drop> Prompt<T> {
         )
     }
 
-    pub fn show_command(&mut self) -> Result<(), std::io::Error> {
-        write!(
-            self.stdout,
-            "COMMAND> {} {}",
-            self.command,
-            self.argument.join(" ")
-        )
+    pub fn show_input(&mut self) -> Result<usize, std::io::Error> {
+        let mut full_command = vec![self.command.clone()];
+        full_command.extend(self.argument.clone());
+
+        let p = format!("{prompt}{bold}{white}{command}{reset} {input}", 
+            prompt = Self::prompt(), 
+            bold = termion::style::Bold,
+            white = termion::color::Fg(termion::color::White),
+            reset = termion::style::Reset,
+            command = full_command.join(" "), 
+            input = self.input);
+
+        self.stdout.write(p.as_bytes())
     }
 
-    pub fn show_input(&mut self) -> Result<usize, std::io::Error> {
-        let p = format!("{}{}", Self::prompt(), self.input);
-        self.stdout.write(p.as_bytes())
+    fn prompt_len(&mut self) -> u64 {
+        let mut full_command = vec![self.command.clone()];
+        full_command.extend(self.argument.clone());
+
+        PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1 + self.input.len() as u64
     }
 
     pub fn show_candidate(&mut self) -> Option<String> {
@@ -229,16 +237,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
             cursor::down(&mut self.stdout, 1);
             cursor::holizon(&mut self.stdout, 1 as u64);
 
-            self.show_command()?;
-            cursor::down(&mut self.stdout, 1);
-            cursor::holizon(&mut self.stdout, 1 as u64);
-
             let lines = self.show_viewer();
             cursor::up(&mut self.stdout, lines.len() as u64);
 
             // Move cursor input position.
             cursor::up(&mut self.stdout, 2u64);
-            cursor::holizon(&mut self.stdout, (PROMPT.len() + self.input.len() + 1) as u64);
+
+            let l = self.prompt_len();
+            cursor::holizon(&mut self.stdout, l + 1);
 
             if let Some(comp) = self.show_candidate() {
                 let s = format!(
@@ -250,7 +256,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 self.stdout.write(s.as_bytes())?;
                 self.completation = Some(comp);
                 
-                cursor::holizon(&mut self.stdout, (PROMPT.len() + self.input.len() + 1) as u64);
+                cursor::holizon(&mut self.stdout, l + 1);
             }
         }
 
