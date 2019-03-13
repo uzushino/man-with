@@ -97,6 +97,19 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos = e - n - 1;
         }
     }
+    
+    pub fn forward(&mut self) {
+        if self.input.len() > self.cursor {
+            self.cursor += 1;
+        }
+    }
+    
+    pub fn back(&mut self) {
+        if self.cursor > 0 {
+            self.cursor -= 1;
+            self.completation = None;
+        }
+    }
 
     fn viewpoint(&self) -> (usize, usize) {
         let (s, e) = if self.pos + self.size > self.buffer.len() {
@@ -116,6 +129,18 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if let Some(ch) = self.input[0..self.cursor].chars().rev().next() {
             self.cursor -= ch.len_utf8();
             self.input.remove(self.cursor);
+
+            if let Some(n) = self.find_position(&self.buffer) {
+                self.pos = n;
+            }
+        }
+    }
+    
+    pub fn delete(&mut self) {
+        if let Some(_) = self.input[0..self.cursor].chars().next() {
+            if self.input.len() > self.cursor {
+                self.input.remove(self.cursor);
+            } 
 
             if let Some(n) = self.find_position(&self.buffer) {
                 self.pos = n;
@@ -156,7 +181,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn completation(&mut self) {
         if let Some(comp) = &self.completation {
             self.input.push_str(&comp);
-            self.cursor += comp.len();
+            self.cursor = self.input.len();
             self.completation = None;
         }
     }
@@ -194,7 +219,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let mut full_command = vec![self.command.clone()];
         full_command.extend(self.argument.clone());
 
-        PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1 + self.input.len() as u64
+        PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1
     }
 
     pub fn show_candidate(&mut self) -> Option<String> {
@@ -241,10 +266,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
             cursor::up(&mut self.stdout, lines.len() as u64);
 
             // Move cursor input position.
-            cursor::up(&mut self.stdout, 2u64);
+            cursor::up(&mut self.stdout, 1u64);
 
             let l = self.prompt_len();
-            cursor::holizon(&mut self.stdout, l + 1);
+            cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
 
             if let Some(comp) = self.show_candidate() {
                 let s = format!(
@@ -253,10 +278,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     comp = comp,
                     reset = termion::style::Reset
                 );
+                cursor::holizon(&mut self.stdout, l + self.input.len() as u64 + 1);
                 self.stdout.write(s.as_bytes())?;
                 self.completation = Some(comp);
                 
-                cursor::holizon(&mut self.stdout, l + 1);
+                cursor::holizon(&mut self.stdout, l + self.cursor as u64+ 1);
             }
         }
 
@@ -287,7 +313,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
 
         cursor::holizon(&mut self.stdout, 1);
-        cursor::up(&mut self.stdout, (self.size + 2) as u64); // panel + input + command
+        cursor::up(&mut self.stdout, (self.size + 2) as u64); // panel + command
 
         Ok(())
     }

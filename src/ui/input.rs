@@ -19,12 +19,15 @@ impl Input {
                     tx.send(Event::Quit)?;
                     break;
                 }
+                Key::Ctrl('b') => tx.send(Event::Back)?,
+                Key::Ctrl('f') => tx.send(Event::Forward)?,
                 Key::Ctrl('p') => tx.send(Event::Prev)?,
                 Key::Ctrl('n') => tx.send(Event::Next)?,
                 Key::Char('\n') => tx.send(Event::Enter)?,
                 Key::Char('\t')=> tx.send(Event::Tab)?,
                 Key::Char(c) => tx.send(Event::Key(c))?,
                 Key::Backspace => tx.send(Event::Backspace)?,
+                Key::Delete => tx.send(Event::Delete)?,
                 Key::Down => tx.send(Event::Down)?,
                 Key::Up => tx.send(Event::Up)?,
                 _ => {}

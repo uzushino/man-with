@@ -123,6 +123,12 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::Delete) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.delete();
+                            Ok(())
+                        });
+                    }
                     Ok(Event::Tab) => {
                         let _ = prompt.lock().and_then(|mut f| {
                             f.completation();
@@ -159,6 +165,18 @@ impl ManWith {
                     Ok(Event::Prev) => {
                         let _ = prompt.lock().and_then(|mut f| {
                             f.prev();
+                            Ok(())
+                        });
+                    }
+                    Ok(Event::Forward) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.forward();
+                            Ok(())
+                        });
+                    }
+                    Ok(Event::Back) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.back();
                             Ok(())
                         });
                     }
