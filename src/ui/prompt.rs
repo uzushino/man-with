@@ -183,6 +183,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.input.push_str(&comp);
             self.cursor = self.input.len();
             self.completation = None;
+            self.pos = 0;
         }
     }
 
