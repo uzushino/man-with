@@ -137,9 +137,10 @@ impl ManWith {
                     }
                     Ok(Event::Enter) => {
                         let mut f = prompt.lock().unwrap();
-                        if f.input.len() > 0 {
+
+                        if f.cursor > 0 {
                             f.append(); // Append command arguments.
-                        } else {
+                        } else if f.is_last() {
                             break;
                         }
                     }
@@ -152,6 +153,18 @@ impl ManWith {
                     Ok(Event::Down) => {
                         let _ = prompt.lock().and_then(|mut f| {
                             f.down();
+                            Ok(())
+                        });
+                    }
+                    Ok(Event::Left) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.select_back();
+                            Ok(())
+                        });
+                    }
+                    Ok(Event::Right) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.select_forward();
                             Ok(())
                         });
                     }
@@ -169,13 +182,13 @@ impl ManWith {
                     }
                     Ok(Event::Forward) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.forward();
+                            f.cursor_forward();
                             Ok(())
                         });
                     }
                     Ok(Event::Back) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.back();
+                            f.cursor_back();
                             Ok(())
                         });
                     }

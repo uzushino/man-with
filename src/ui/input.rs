@@ -28,6 +28,8 @@ impl Input {
                 Key::Char(c) => tx.send(Event::Key(c))?,
                 Key::Backspace => tx.send(Event::Backspace)?,
                 Key::Delete => tx.send(Event::Delete)?,
+                Key::Left => tx.send(Event::Left)?,
+                Key::Right => tx.send(Event::Right)?,
                 Key::Down => tx.send(Event::Down)?,
                 Key::Up => tx.send(Event::Up)?,
                 _ => {}
