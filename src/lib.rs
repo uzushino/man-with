@@ -156,6 +156,12 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::Left) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.select_back();
+                            Ok(())
+                        });
+                    }
                     Ok(Event::Next) => {
                         let _ = prompt.lock().and_then(|mut f| {
                             f.next();
@@ -170,13 +176,13 @@ impl ManWith {
                     }
                     Ok(Event::Forward) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.forward();
+                            f.cursor_forward();
                             Ok(())
                         });
                     }
                     Ok(Event::Back) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.back();
+                            f.cursor_back();
                             Ok(())
                         });
                     }

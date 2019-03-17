@@ -20,6 +20,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     cursor: usize,
     pos: usize,
     size: usize,
+    selected: usize,
 }
 
 fn is_args(ch: char) -> bool {
@@ -58,6 +59,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             cursor: 0,
             pos: 0,
             size: height,
+            selected: 0,
         }
     }
 
@@ -98,13 +100,21 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
     
-    pub fn forward(&mut self) {
+    pub fn select_back(&mut self) {
+       if self.selected > 0 {
+           self.selected -= 1;
+           self.cursor = 0;
+           self.completation = None;
+       } 
+    }
+    
+    pub fn cursor_forward(&mut self) {
         if self.input.len() > self.cursor {
             self.cursor += 1;
         }
     }
     
-    pub fn back(&mut self) {
+    pub fn cursor_back(&mut self) {
         if self.cursor > 0 {
             self.cursor -= 1;
             self.completation = None;
@@ -152,6 +162,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         self.argument.push(self.input.clone());
         self.input = String::new();
         self.cursor = 0;
+        self.selected += 1;
     }
 
     pub fn insert(&mut self, ch: char) {
@@ -218,7 +229,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     fn prompt_len(&mut self) -> u64 {
         let mut full_command = vec![self.command.clone()];
-        full_command.extend(self.argument.clone());
+        let current = &self.argument[0..self.selected];
+        full_command.extend(current.to_vec());
 
         PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1
     }
@@ -296,11 +308,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn sweep(&mut self) -> Result<(), failure::Error> {
-        // command
-        cursor::holizon(&mut self.stdout, 1);
-        cursor::clear_line(&mut self.stdout);
-        self.stdout.write(b"\n")?;
-
         // input
         cursor::holizon(&mut self.stdout, 1);
         cursor::clear_line(&mut self.stdout);
@@ -314,7 +321,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
 
         cursor::holizon(&mut self.stdout, 1);
-        cursor::up(&mut self.stdout, (self.size + 2) as u64); // panel + command
+        cursor::up(&mut self.stdout, (self.size + 1) as u64); // panel + input 
 
         Ok(())
     }
