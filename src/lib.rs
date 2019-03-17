@@ -137,7 +137,6 @@ impl ManWith {
                     }
                     Ok(Event::Enter) => {
                         let mut f = prompt.lock().unwrap();
-
                         if f.input.len() > 0 {
                             f.append(); // Append command arguments.
                         } else {

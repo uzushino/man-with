@@ -24,7 +24,7 @@ pub struct Prompt<T: Write + Send + Drop> {
 
 fn is_args(ch: char) -> bool {
     match ch {
-        '-' | '_' | '=' => true,
+        '-' | '_' | '=' | ':' | '{' | '}' | '.' => true,
         _ => ch.is_ascii_alphabetic() || ch.is_ascii_digit()
     }
 }
