@@ -11,13 +11,12 @@ const PROMPT: &'static str = "> ";
 #[derive(Clone)]
 pub struct Prompt<T: Write + Send + Drop> {
     pub panel: Vec<String>,
-    pub input: String,
     pub command: String,
     pub argument: Vec<String>,
     pub stdout: T,
     completation: Option<String>,
     buffer: Vec<String>,
-    cursor: usize,
+    pub cursor: usize,
     pos: usize,
     size: usize,
     selected: usize,
@@ -50,9 +49,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
         Prompt {
             panel: vec![String::new(); height],
-            input: String::new(),
             command: String::from(command),
-            argument: Vec::new(),
+            argument: vec![String::default()],
             stdout: stdout,
             completation: None,
             buffer: s.split('\n').map(|v| v.to_string()).collect(),
@@ -108,8 +106,18 @@ impl<T: Write + Send + Drop> Prompt<T> {
        } 
     }
     
+    pub fn select_forward(&mut self) {
+       if self.selected < (self.argument.len() - 1) {
+           self.selected += 1;
+           self.cursor = 0;
+           self.completation = None;
+       } 
+    }
+    
     pub fn cursor_forward(&mut self) {
-        if self.input.len() > self.cursor {
+        let input = &self.argument[self.selected];
+
+        if input.len() > self.cursor {
             self.cursor += 1;
         }
     }
@@ -136,9 +144,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn backspace(&mut self) {
-        if let Some(ch) = self.input[0..self.cursor].chars().rev().next() {
+        let input = &mut self.argument[self.selected];
+
+        if let Some(ch) = input[0..self.cursor].chars().rev().next() {
             self.cursor -= ch.len_utf8();
-            self.input.remove(self.cursor);
+            input.remove(self.cursor);
 
             if let Some(n) = self.find_position(&self.buffer) {
                 self.pos = n;
@@ -147,9 +157,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
     
     pub fn delete(&mut self) {
-        if let Some(_) = self.input[0..self.cursor].chars().next() {
-            if self.input.len() > self.cursor {
-                self.input.remove(self.cursor);
+        let input = &mut self.argument[self.selected];
+
+        if let Some(_) = input[0..self.cursor].chars().next() {
+            if input.len() > self.cursor {
+                input.remove(self.cursor);
             } 
 
             if let Some(n) = self.find_position(&self.buffer) {
@@ -159,14 +171,17 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn append(&mut self) {
-        self.argument.push(self.input.clone());
-        self.input = String::new();
-        self.cursor = 0;
+        if self.is_last() {
+            self.argument.push(String::default());
+        }
+
         self.selected += 1;
+        self.cursor = 0;
     }
 
     pub fn insert(&mut self, ch: char) {
-        self.input.insert(self.cursor, ch);
+        let input = &mut self.argument[self.selected];
+        input.insert(self.cursor, ch);
         self.cursor += ch.len_utf8();
 
         if let Some(n) = self.find_position(&self.buffer) {
@@ -175,11 +190,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     fn candidates(&self) -> Vec<String> {
-        let n = &self.input;
-        if n.is_empty() {
+        if self.cursor == 0 {
             return Vec::default();
         }
-
+        
+        let n = &self.argument[self.selected];
         let hits = self.buffer.iter()
             .filter(|line| line.contains(n))
             .map(|line| line.split_whitespace().filter(|tok| tok.contains(n)))
@@ -191,16 +206,18 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn completation(&mut self) {
         if let Some(comp) = &self.completation {
-            self.input.push_str(&comp);
-            self.cursor = self.input.len();
+            let input = &mut self.argument[self.selected];
+            input.push_str(&comp);
+
+            self.cursor = input.len();
             self.completation = None;
             self.pos = 0;
         }
     }
 
     pub fn find_position(&self, buffer: &Vec<String>) -> Option<usize> {
-        let n = &self.input;
-        buffer.iter().position(|v| v.contains(n))
+        let input = &self.argument[self.selected];
+        buffer.iter().position(|v| v.contains(input))
     }
 
     pub fn prompt() -> String {
@@ -216,13 +233,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let mut full_command = vec![self.command.clone()];
         full_command.extend(self.argument.clone());
 
-        let p = format!("{prompt}{bold}{white}{command}{reset} {input}", 
+        let p = format!("{prompt}{bold}{white}{command}{reset}", 
             prompt = Self::prompt(), 
             bold = termion::style::Bold,
             white = termion::color::Fg(termion::color::White),
             reset = termion::style::Reset,
-            command = full_command.join(" "), 
-            input = self.input);
+            command = full_command.join(" ")
+        );
 
         self.stdout.write(p.as_bytes())
     }
@@ -232,12 +249,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let current = &self.argument[0..self.selected];
         full_command.extend(current.to_vec());
 
-        PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1
+        PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1u64
     }
 
     pub fn show_candidate(&mut self) -> Option<String> {
         if let Some(c) = self.candidates().first() {
-            let comp = &c[self.input.len()..c.len()];
+            let input = &self.argument[self.selected];
+            let comp = &c[input.len()..c.len()];
+
             return Some(comp.to_string());
         };
         None
@@ -246,13 +265,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn show_viewer(&mut self) -> Vec<String> {
         let (s, e) = self.viewpoint();
         let mut buffer = self.buffer.clone();
+        let input = &self.argument[self.selected];
+
         let decorated = format!(
             "{red}{input}{reset}",
             red = termion::color::Fg(termion::color::Red),
-            input = self.input,
+            input = input,
             reset = termion::style::Reset
         );
-        buffer[self.pos] = buffer[self.pos].replace(&self.input, &decorated);
+        buffer[self.pos] = buffer[self.pos].replace(input, &decorated);
 
         let lines = &buffer[s..e];
         for l in lines {
@@ -291,7 +312,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     comp = comp,
                     reset = termion::style::Reset
                 );
-                cursor::holizon(&mut self.stdout, l + self.input.len() as u64 + 1);
+
+                cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
                 self.stdout.write(s.as_bytes())?;
                 self.completation = Some(comp);
                 
@@ -324,5 +346,9 @@ impl<T: Write + Send + Drop> Prompt<T> {
         cursor::up(&mut self.stdout, (self.size + 1) as u64); // panel + input 
 
         Ok(())
+    }
+
+    pub fn is_last(&self) -> bool {
+        self.selected == self.argument.len() - 1
     }
 }
