@@ -30,7 +30,7 @@ fn is_args(ch: char) -> bool {
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
-    pub fn new(stdout: T, command: &str, height: usize, help: bool) -> Self {
+    pub fn new(stdout: T, command: &str, height: usize, help: bool, line_number: bool) -> Self {
         let cmd = if help {
             Command::new(command)
                 .arg("--help")
@@ -46,6 +46,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
         let out = cmd.stdout;
         let s = String::from_utf8_lossy(&out);
+        let mut lines = Vec::default();
+        for (i, line) in s.split('\n').collect::<Vec<_>>().iter().enumerate() {
+            let l = if line_number {
+                format!("{number} {line}", number = i + 1, line = line)
+            } else {
+                line.to_string()
+            };
+            lines.push(l);
+        }
 
         Prompt {
             panel: vec![String::new(); height],
@@ -53,7 +62,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             argument: vec![String::default()],
             stdout: stdout,
             completation: None,
-            buffer: s.split('\n').map(|v| v.to_string()).collect(),
+            buffer: lines,
             cursor: 0,
             pos: 0,
             size: height,

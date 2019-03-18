@@ -33,6 +33,12 @@ fn main() -> Result<(), Error> {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("LINE_NUMBER")
+                .long("line_number")
+                .short("l")
+                .help("Sets show line number.")
+        )
+        .arg(
             Arg::with_name("USE_HELP")
                 .long("use_help")
                 .short("p")
@@ -42,12 +48,9 @@ fn main() -> Result<(), Error> {
 
     let command = matches.value_of("COMMAND").unwrap();
     let size = value_t!(matches, "SIZE", usize).unwrap_or(10);
-    let help = if matches.is_present("USE_HELP") {
-        true
-    } else {
-        false
-    };
-    let result = run(command, size, help)?;
+    let help = matches.is_present("USE_HELP");
+    let line_number = matches.is_present("LINE_NUMBER");
+    let result = run(command, size, help, line_number)?;
 
     Command::new(result.0).args(result.1).spawn()?.wait()?;
 
@@ -55,7 +58,7 @@ fn main() -> Result<(), Error> {
 }
 
 // When dropping raw mode stdout, return to original stdout.
-fn run(command: &str, size: usize, help: bool) -> Result<(String, Vec<String>), Error> {
-    let app = ManWith::new(command, size, help);
+fn run(command: &str, size: usize, help: bool, line_number: bool) -> Result<(String, Vec<String>), Error> {
+    let app = ManWith::new(command, size, help, line_number);
     app.run()
 }
