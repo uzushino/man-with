@@ -14,4 +14,6 @@ pub enum Event {
     Left,
     Right,
     Quit,
+
+    Fn1,
 }

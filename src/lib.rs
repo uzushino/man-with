@@ -21,7 +21,7 @@ mod event;
 mod ui;
 
 use self::event::Event;
-use self::ui::{Input, Prompt};
+use self::ui::{Input, Prompt, prompt::SourceType};
 
 pub type CommandWithArgument = (String, Vec<String>);
 
@@ -31,11 +31,11 @@ pub struct ManWith {
 }
 
 impl ManWith {
-    pub fn new(cmd: &str, height: usize, help: bool, line_number: bool) -> Self {
+    pub fn new(cmd: &str, height: usize, help: bool) -> Self {
         let stdout = io::stdout();
         let source = source();
         let stdout = stdout.into_raw_mode().unwrap();
-        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height, help, line_number)));
+        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height, help)));
 
         ManWith {
             source: Arc::new(Mutex::new(source)),
@@ -189,6 +189,12 @@ impl ManWith {
                     Ok(Event::Back) => {
                         let _ = prompt.lock().and_then(|mut f| {
                             f.cursor_back();
+                            Ok(())
+                        });
+                    }
+                    Ok(Event::Fn1) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.source_type = f.source_type.toggle(SourceType::LineNumber);
                             Ok(())
                         });
                     }

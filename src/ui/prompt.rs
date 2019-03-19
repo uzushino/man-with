@@ -8,15 +8,32 @@ use crate::ui::cursor;
 
 const PROMPT: &'static str = "> ";
 
+#[derive(Clone, PartialEq)]
+pub enum SourceType {
+    Normal,
+    LineNumber,
+}
+
+impl SourceType {
+    pub fn toggle(&self, other: Self) -> Self {
+        if *self == SourceType::LineNumber {
+            SourceType::Normal
+        } else {
+            other
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Prompt<T: Write + Send + Drop> {
     pub panel: Vec<String>,
     pub command: String,
     pub argument: Vec<String>,
     pub stdout: T,
+    pub cursor: usize,
+    pub source_type: SourceType,
     completation: Option<String>,
     buffer: Vec<String>,
-    pub cursor: usize,
     pos: usize,
     size: usize,
     selected: usize,
@@ -30,7 +47,7 @@ fn is_args(ch: char) -> bool {
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
-    pub fn new(stdout: T, command: &str, height: usize, help: bool, line_number: bool) -> Self {
+    pub fn new(stdout: T, command: &str, height: usize, help: bool) -> Self {
         let cmd = if help {
             Command::new(command)
                 .arg("--help")
@@ -46,15 +63,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
         let out = cmd.stdout;
         let s = String::from_utf8_lossy(&out);
-        let mut lines = Vec::default();
-        for (i, line) in s.split('\n').collect::<Vec<_>>().iter().enumerate() {
-            let l = if line_number {
-                format!("{number} {line}", number = i + 1, line = line)
-            } else {
-                line.to_string()
-            };
-            lines.push(l);
-        }
 
         Prompt {
             panel: vec![String::new(); height],
@@ -62,11 +70,25 @@ impl<T: Write + Send + Drop> Prompt<T> {
             argument: vec![String::default()],
             stdout: stdout,
             completation: None,
-            buffer: lines,
+            buffer: s.split('\n').map(|v| v.to_string()).collect::<Vec<_>>(),
             cursor: 0,
             pos: 0,
             size: height,
             selected: 0,
+            source_type: SourceType::Normal,
+        }
+    }
+
+    pub fn source(&mut self) -> Vec<String> {
+        match self.source_type {
+            SourceType::LineNumber => {
+                let mut lines = Vec::default();
+                for (i, line) in self.buffer.iter().enumerate() {
+                    lines.push(format!("{number} {line}", number = i + 1, line = line));
+                }
+                lines
+            }
+            _ => self.buffer.clone(),
         }
     }
 
@@ -204,6 +226,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
         
         let n = &self.argument[self.selected];
+
         let hits = self.buffer.iter()
             .filter(|line| line.contains(n))
             .map(|line| line.split_whitespace().filter(|tok| tok.contains(n)))
@@ -273,7 +296,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn show_viewer(&mut self) -> Vec<String> {
         let (s, e) = self.viewpoint();
-        let mut buffer = self.buffer.clone();
+        let mut buffer = self.source();
         let input = &self.argument[self.selected];
 
         let decorated = format!(
