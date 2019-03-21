@@ -21,7 +21,7 @@ mod event;
 mod ui;
 
 use self::event::Event;
-use self::ui::{Input, Prompt, prompt::SourceType};
+use self::ui::{Input, Prompt, viewer::ShowType};
 
 pub type CommandWithArgument = (String, Vec<String>);
 
@@ -194,7 +194,7 @@ impl ManWith {
                     }
                     Ok(Event::Fn1) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.source_type = f.source_type.toggle(SourceType::LineNumber);
+                            f.viewer.toggle_show_type(ShowType::LineNumber);
                             Ok(())
                         });
                     }

@@ -1,28 +1,12 @@
 use std::io::Write;
-use std::process::Command;
 
 use terminal_size::terminal_size;
 use termion;
 
 use crate::ui::cursor;
+use super::viewer::{ Viewer, ShowType, SourceType };
 
 const PROMPT: &'static str = "> ";
-
-#[derive(Clone, PartialEq)]
-pub enum SourceType {
-    Normal,
-    LineNumber,
-}
-
-impl SourceType {
-    pub fn toggle(&self, other: Self) -> Self {
-        if *self == SourceType::LineNumber {
-            SourceType::Normal
-        } else {
-            other
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct Prompt<T: Write + Send + Drop> {
@@ -31,7 +15,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pub argument: Vec<String>,
     pub stdout: T,
     pub cursor: usize,
-    pub source_type: SourceType,
+    pub viewer: Viewer,
     completation: Option<String>,
     buffer: Vec<String>,
     pos: usize,
@@ -48,21 +32,14 @@ fn is_args(ch: char) -> bool {
 
 impl<T: Write + Send + Drop> Prompt<T> {
     pub fn new(stdout: T, command: &str, height: usize, help: bool) -> Self {
-        let cmd = if help {
-            Command::new(command)
-                .arg("--help")
-                .output()
-                .expect("failed to execute process")
+        let viewer = if help {
+            Viewer::new(SourceType::Help)
         } else {
-            Command::new("sh")
-                .arg("-c")
-                .arg(format!("man {} | col -bx", command))
-                .output()
-                .expect("failed to execute process")
+            Viewer::new(SourceType::Man)
         };
-
-        let out = cmd.stdout;
-        let s = String::from_utf8_lossy(&out);
+        let buffer = {
+            viewer.source()
+        };
 
         Prompt {
             panel: vec![String::new(); height],
@@ -70,27 +47,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
             argument: vec![String::default()],
             stdout: stdout,
             completation: None,
-            buffer: s.split('\n').map(|v| v.to_string()).collect::<Vec<_>>(),
+            viewer: viewer,
+            buffer: buffer.split('\n').map(|v| v.to_string()).collect::<Vec<_>>(),
             cursor: 0,
             pos: 0,
             size: height,
             selected: 0,
-            source_type: SourceType::Normal,
         }
     }
 
-    pub fn source(&mut self) -> Vec<String> {
-        match self.source_type {
-            SourceType::LineNumber => {
-                let mut lines = Vec::default();
-                for (i, line) in self.buffer.iter().enumerate() {
-                    lines.push(format!("{number} {line}", number = i + 1, line = line));
-                }
-                lines
-            }
-            _ => self.buffer.clone(),
-        }
-    }
 
     pub fn down(&mut self) {
         if (self.pos + 1) > self.buffer.len() {
@@ -296,7 +261,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn show_viewer(&mut self) -> Vec<String> {
         let (s, e) = self.viewpoint();
-        let mut buffer = self.source();
+        let mut buffer = self.viewer.show(self.buffer.clone());
         let input = &self.argument[self.selected];
 
         let decorated = format!(
