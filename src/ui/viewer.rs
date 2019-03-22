@@ -20,11 +20,11 @@ pub struct Viewer {
 }
 
 impl Viewer {
-  pub fn new(source_type: SourceType) -> Self {
+  pub fn new(command: &str, source_type: SourceType) -> Self {
     Viewer {
       source_type: source_type,
       show_type: ShowType::Normal,
-      command: String::default(),
+      command: String::from(command)
     }
   }
 

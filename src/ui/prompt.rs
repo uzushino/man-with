@@ -33,9 +33,9 @@ fn is_args(ch: char) -> bool {
 impl<T: Write + Send + Drop> Prompt<T> {
     pub fn new(stdout: T, command: &str, height: usize, help: bool) -> Self {
         let viewer = if help {
-            Viewer::new(SourceType::Help)
+            Viewer::new(command, SourceType::Help)
         } else {
-            Viewer::new(SourceType::Man)
+            Viewer::new(command, SourceType::Man)
         };
         let buffer = {
             viewer.source()
