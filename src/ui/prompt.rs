@@ -10,12 +10,12 @@ const PROMPT: &'static str = "> ";
 
 #[derive(Clone)]
 pub struct Prompt<T: Write + Send + Drop> {
-    pub panel: Vec<String>,
+    panel: Vec<String>,
     pub command: String,
-    pub argument: Vec<String>,
     pub stdout: T,
     pub cursor: usize,
     pub viewer: Viewer,
+    argument: Vec<String>,
     completation: Option<String>,
     buffer: Vec<String>,
     pos: usize,
@@ -48,7 +48,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             stdout: stdout,
             completation: None,
             viewer: viewer,
-            buffer: buffer.split('\n').map(|v| v.to_string()).collect::<Vec<_>>(),
+            buffer: buffer.split('\n').map(ToString::to_string).collect::<Vec<String>>(),
             cursor: 0,
             pos: 0,
             size: height,
@@ -56,6 +56,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
 
+    pub fn full_command(&self) -> (String, Vec<String>) {
+        let a = self.argument.iter()
+            .filter(|v| !v.is_empty())
+            .map(ToString::to_string)
+            .collect::<Vec<_>>().clone();
+
+        (self.command.clone(), a)
+    }
 
     pub fn down(&mut self) {
         if (self.pos + 1) > self.buffer.len() {

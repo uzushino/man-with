@@ -65,9 +65,10 @@ impl ManWith {
         let mut f = self.prompt.lock().unwrap();
         ui::cursor::holizon(&mut f.stdout, 1u64);
         ui::cursor::clear_line(&mut f.stdout);
+
         f.flush()?;
 
-        Ok((f.command.clone(), f.argument.clone()))
+        Ok(f.full_command())
     }
 
     pub fn input_handler(&self, tx: Sender<Event>) -> JoinHandle<()> {
@@ -102,14 +103,6 @@ impl ManWith {
                     Ok(Event::Quit) => {
                         // Quit message.
                         break;
-                    }
-                    Ok(Event::ReadLine(line)) => {
-                        let _ = prompt.lock().and_then(|mut f| {
-                            f.panel.push(line);
-                            f.show().unwrap();
-                            f.flush().unwrap();
-                            Ok(())
-                        });
                     }
                     Ok(Event::Key(ch)) => {
                         let _ = prompt.lock().and_then(|mut f| {

@@ -38,12 +38,11 @@ impl Viewer {
   pub fn show(&self, buffer: Vec<String>) -> Vec<String> {
       match self.show_type {
           ShowType::LineNumber => {
-              let mut lines = Vec::default();
-
-              for (i, line) in buffer.iter().enumerate() {
-                  lines.push(format!("{number} {line}", number = i + 1, line = line));
-              }
-              lines
+            buffer
+              .iter()
+              .enumerate()
+              .map(|(i, line)| format!("{number} {line}", number = i + 1, line = line))
+              .collect::<Vec<_>>()
           }
           _ => buffer,
       }
