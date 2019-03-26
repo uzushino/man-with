@@ -16,4 +16,5 @@ pub enum Event {
     Quit,
 
     Fn1,
+    Fn2,
 }

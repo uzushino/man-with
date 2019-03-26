@@ -4,7 +4,7 @@ use terminal_size::terminal_size;
 use termion;
 
 use crate::ui::cursor;
-use super::viewer::{ Viewer, ShowType, SourceType };
+use super::viewer::{ Viewer, SourceType };
 
 const PROMPT: &'static str = "> ";
 
@@ -255,6 +255,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
         full_command.extend(current.to_vec());
 
         PROMPT.len() as u64 + full_command.join(" ").len() as u64 + 1u64
+    }
+
+    pub fn incr_size(&mut self) {
+        self.size += 1;
     }
 
     pub fn show_candidate(&mut self) -> Option<String> {

@@ -33,6 +33,7 @@ impl Input {
                 Key::Down => tx.send(Event::Down)?,
                 Key::Up => tx.send(Event::Up)?,
                 Key::F(1) => tx.send(Event::Fn1)?,
+                Key::F(2) => tx.send(Event::Fn2)?,
                 _ => {}
             };
         }

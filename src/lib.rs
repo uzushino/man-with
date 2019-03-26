@@ -191,6 +191,12 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::Fn2) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.incr_size();
+                            Ok(())
+                        });
+                    }
                     _ => break,
                 };
 
