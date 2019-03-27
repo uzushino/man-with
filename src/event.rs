@@ -17,4 +17,5 @@ pub enum Event {
 
     Fn1,
     Fn2,
+    Fn3,
 }

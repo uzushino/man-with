@@ -268,6 +268,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
         self.size += 1;
     }
 
+    pub fn decr_size(&mut self) {
+        if self.size > 1 {
+            self.size -= 1;
+        }
+    }
+
     pub fn show_candidate(&mut self) -> Option<String> {
         if let Some(c) = self.candidates().first() {
             let input = &self.argument[self.selected];
