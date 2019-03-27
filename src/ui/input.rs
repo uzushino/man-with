@@ -24,7 +24,7 @@ impl Input {
                 Key::Ctrl('p') => tx.send(Event::Prev)?,
                 Key::Ctrl('n') => tx.send(Event::Next)?,
                 Key::Char('\n') => tx.send(Event::Enter)?,
-                Key::Char('\t')=> tx.send(Event::Tab)?,
+                Key::Char('\t') => tx.send(Event::Tab)?,
                 Key::Char(c) => tx.send(Event::Key(c))?,
                 Key::Backspace => tx.send(Event::Backspace)?,
                 Key::Delete => tx.send(Event::Delete)?,

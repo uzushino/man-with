@@ -21,7 +21,7 @@ mod event;
 mod ui;
 
 use self::event::Event;
-use self::ui::{Input, Prompt, viewer::ShowType};
+use self::ui::{viewer::ShowType, Input, Prompt};
 
 pub type CommandWithArgument = (String, Vec<String>);
 

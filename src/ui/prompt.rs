@@ -3,8 +3,8 @@ use std::io::Write;
 use terminal_size::terminal_size;
 use termion;
 
+use super::viewer::{SourceType, Viewer};
 use crate::ui::cursor;
-use super::viewer::{ Viewer, SourceType };
 
 const PROMPT: &'static str = "> ";
 
@@ -26,7 +26,7 @@ pub struct Prompt<T: Write + Send + Drop> {
 fn is_args(ch: char) -> bool {
     match ch {
         '-' | '_' | '=' | ':' | '{' | '}' | '.' => true,
-        _ => ch.is_ascii_alphabetic() || ch.is_ascii_digit()
+        _ => ch.is_ascii_alphabetic() || ch.is_ascii_digit(),
     }
 }
 
@@ -37,9 +37,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         } else {
             Viewer::new(command, SourceType::Man)
         };
-        let buffer = {
-            viewer.source()
-        };
+        let buffer = { viewer.source() };
 
         Prompt {
             panel: vec![String::new(); height],
@@ -48,7 +46,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
             stdout: stdout,
             completation: None,
             viewer: viewer,
-            buffer: buffer.split('\n').map(ToString::to_string).collect::<Vec<String>>(),
+            buffer: buffer
+                .split('\n')
+                .map(ToString::to_string)
+                .collect::<Vec<String>>(),
             cursor: 0,
             pos: 0,
             size: height,
@@ -57,10 +58,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn full_command(&self) -> (String, Vec<String>) {
-        let a = self.argument.iter()
+        let a = self
+            .argument
+            .iter()
             .filter(|v| !v.is_empty())
             .map(ToString::to_string)
-            .collect::<Vec<_>>().clone();
+            .collect::<Vec<_>>()
+            .clone();
 
         (self.command.clone(), a)
     }
@@ -101,23 +105,23 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos = e - n - 1;
         }
     }
-    
+
     pub fn select_back(&mut self) {
-       if self.selected > 0 {
-           self.selected -= 1;
-           self.cursor = 0;
-           self.completation = None;
-       } 
+        if self.selected > 0 {
+            self.selected -= 1;
+            self.cursor = 0;
+            self.completation = None;
+        }
     }
-    
+
     pub fn select_forward(&mut self) {
-       if self.selected < (self.argument.len() - 1) {
-           self.selected += 1;
-           self.cursor = 0;
-           self.completation = None;
-       } 
+        if self.selected < (self.argument.len() - 1) {
+            self.selected += 1;
+            self.cursor = 0;
+            self.completation = None;
+        }
     }
-    
+
     pub fn cursor_forward(&mut self) {
         let input = &self.argument[self.selected];
 
@@ -125,7 +129,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.cursor += 1;
         }
     }
-    
+
     pub fn cursor_back(&mut self) {
         if self.cursor > 0 {
             self.cursor -= 1;
@@ -159,14 +163,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
             }
         }
     }
-    
+
     pub fn delete(&mut self) {
         let input = &mut self.argument[self.selected];
 
         if let Some(_) = input[0..self.cursor].chars().next() {
             if input.len() > self.cursor {
                 input.remove(self.cursor);
-            } 
+            }
 
             if let Some(n) = self.find_position(&self.buffer) {
                 self.pos = n;
@@ -197,15 +201,17 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if self.cursor == 0 {
             return Vec::default();
         }
-        
+
         let n = &self.argument[self.selected];
 
-        let hits = self.buffer.iter()
+        let hits = self
+            .buffer
+            .iter()
             .filter(|line| line.contains(n))
             .map(|line| line.split_whitespace().filter(|tok| tok.contains(n)))
             .flatten()
             .map(|token| token.matches(is_args).collect());
-        
+
         hits.collect::<Vec<String>>()
     }
 
@@ -238,8 +244,9 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let mut full_command = vec![self.command.clone()];
         full_command.extend(self.argument.clone());
 
-        let p = format!("{prompt}{bold}{white}{command}{reset}", 
-            prompt = Self::prompt(), 
+        let p = format!(
+            "{prompt}{bold}{white}{command}{reset}",
+            prompt = Self::prompt(),
             bold = termion::style::Bold,
             white = termion::color::Fg(termion::color::White),
             reset = termion::style::Reset,
@@ -325,8 +332,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
                 self.stdout.write(s.as_bytes())?;
                 self.completation = Some(comp);
-                
-                cursor::holizon(&mut self.stdout, l + self.cursor as u64+ 1);
+
+                cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
             }
         }
 
@@ -352,7 +359,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
 
         cursor::holizon(&mut self.stdout, 1);
-        cursor::up(&mut self.stdout, (self.size + 1) as u64); // panel + input 
+        cursor::up(&mut self.stdout, (self.size + 1) as u64); // panel + input
 
         Ok(())
     }
