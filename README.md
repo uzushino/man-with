@@ -39,6 +39,7 @@ Using the --help option instead of man command
 |       | Quit and Execute command |
 | Up    | Scroll up a man page |
 | Down  | Scroll down a man page |
+| F1    | Toggle show line number. |
 
 ### Supported Platforms
 

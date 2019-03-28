@@ -37,6 +37,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         } else {
             Viewer::new(command, SourceType::Man)
         };
+
         let buffer = { viewer.source() };
 
         Prompt {
@@ -265,7 +266,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn incr_size(&mut self) {
-        self.size += 1;
+       self.size += 1;
     }
 
     pub fn decr_size(&mut self) {
