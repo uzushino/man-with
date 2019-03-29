@@ -31,13 +31,12 @@ fn is_args(ch: char) -> bool {
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
-    pub fn new(stdout: T, command: &str, height: usize, help: bool) -> Self {
-        let viewer = if help {
-            Viewer::new(command, SourceType::Help)
-        } else {
-            Viewer::new(command, SourceType::Man)
+    pub fn new(stdout: T, command: &str, height: usize, help: bool, stdin: bool) -> Self {
+        let viewer = match (stdin, help) {
+            (true, _) => Viewer::new(command, SourceType::Stdin),
+            (_, true) => Viewer::new(command, SourceType::Help),
+            _ => Viewer::new(command, SourceType::Man)
         };
-
         let buffer = { viewer.source() };
 
         Prompt {
@@ -196,6 +195,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if let Some(n) = self.find_position(&self.buffer) {
             self.pos = n;
         }
+    }
+    
+    pub fn insert_line(&mut self, line: String) {
+        self.buffer.push(line)
     }
 
     fn candidates(&self) -> Vec<String> {

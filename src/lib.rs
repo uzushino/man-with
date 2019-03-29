@@ -35,7 +35,7 @@ impl ManWith {
         let stdout = io::stdout();
         let source = source();
         let stdout = stdout.into_raw_mode().unwrap();
-        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height, help)));
+        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height, help, source.is_some())));
 
         ManWith {
             source: Arc::new(Mutex::new(source)),
@@ -46,6 +46,7 @@ impl ManWith {
     pub fn run(&self) -> Result<CommandWithArgument, Error> {
         {
             let mut p = self.prompt.lock().unwrap();
+
             p.show()?;
             p.flush()?;
         }
@@ -103,6 +104,12 @@ impl ManWith {
                     Ok(Event::Quit) => {
                         // Quit message.
                         break;
+                    }
+                    Ok(Event::ReadLine(line)) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.insert_line(line);
+                            Ok(())
+                        });
                     }
                     Ok(Event::Key(ch)) => {
                         let _ = prompt.lock().and_then(|mut f| {
@@ -218,7 +225,6 @@ impl ManWith {
 fn source() -> Option<BufReader<File>> {
     unsafe {
         let isatty = libc::isatty(libc::STDIN_FILENO as i32) != 0;
-
         if !isatty {
             let stdin = File::from_raw_fd(libc::dup(libc::STDIN_FILENO));
             let file = File::open("/dev/tty").unwrap();

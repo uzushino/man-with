@@ -4,6 +4,7 @@ use std::process::Command;
 pub enum SourceType {
     Man,
     Help,
+    Stdin,
 }
 
 #[derive(Clone, PartialEq)]
@@ -32,6 +33,7 @@ impl Viewer {
         match self.source_type {
             SourceType::Man => self.man(),
             SourceType::Help => self.help(),
+            SourceType::Stdin => String::default(),
         }
     }
 
