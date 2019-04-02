@@ -1,4 +1,5 @@
 use std::io::Write;
+use std::process::Command;
 
 use terminal_size::terminal_size;
 use termion;
@@ -207,7 +208,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
 
         let n = &self.argument[self.selected];
-
         let hits = self
             .buffer
             .iter()
@@ -216,7 +216,22 @@ impl<T: Write + Send + Drop> Prompt<T> {
             .flatten()
             .map(|token| token.matches(is_args).collect());
 
-        hits.collect::<Vec<String>>()
+        let mut hits = hits.collect::<Vec<String>>();
+
+        if n.starts_with(".") && std::path::Path::new(n).is_dir() { // File path candidates
+            if let Ok(paths) = std::fs::read_dir(n) {
+                for dir in paths {
+                    if let Ok(p) = dir {
+                        match p.path().to_str() {
+                            Some(s) => hits.push(s.to_string()),
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+
+        hits
     }
 
     pub fn completation(&mut self) {
