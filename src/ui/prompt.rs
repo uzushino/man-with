@@ -1,4 +1,6 @@
 use std::io::Write;
+use std::fs;
+use std::path::PathBuf;
 
 use terminal_size::terminal_size;
 use termion;
@@ -216,13 +218,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
             .map(|token| token.matches(is_args).collect());
 
         let mut hits = hits.collect::<Vec<String>>();
-        let path = std::path::Path::new(n);
+        
+        let srcdir = PathBuf::from(n);
+        let absolute = fs::canonicalize(&srcdir).unwrap();
 
-        if n.starts_with(".") { // File path candidates
-            let dir = if path.is_dir() {
-                path
+        if n.starts_with(".") || n.starts_with("~") { // File path candidates
+            let dir = if absolute.is_dir() {
+                absolute.as_path()
             } else {
-                path.parent().unwrap()
+                absolute.parent().unwrap()
             };
 
             if let Ok(paths) = std::fs::read_dir(dir) {
