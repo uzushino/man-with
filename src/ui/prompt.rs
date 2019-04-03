@@ -1,5 +1,4 @@
 use std::io::Write;
-use std::process::Command;
 
 use terminal_size::terminal_size;
 use termion;
@@ -217,9 +216,16 @@ impl<T: Write + Send + Drop> Prompt<T> {
             .map(|token| token.matches(is_args).collect());
 
         let mut hits = hits.collect::<Vec<String>>();
+        let path = std::path::Path::new(n);
 
-        if n.starts_with(".") && std::path::Path::new(n).is_dir() { // File path candidates
-            if let Ok(paths) = std::fs::read_dir(n) {
+        if n.starts_with(".") { // File path candidates
+            let dir = if path.is_dir() {
+                path
+            } else {
+                path.parent().unwrap()
+            };
+
+            if let Ok(paths) = std::fs::read_dir(dir) {
                 for dir in paths {
                     if let Ok(p) = dir {
                         match p.path().to_str() {
