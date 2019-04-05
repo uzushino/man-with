@@ -4,6 +4,7 @@ extern crate libc;
 extern crate terminal_size;
 extern crate termion;
 extern crate unicode_width;
+extern crate shellexpand;
 
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Stdout};
