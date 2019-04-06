@@ -1,6 +1,3 @@
-use std::borrow::Cow;
-use std::env;
-use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
@@ -32,14 +29,6 @@ fn is_args(ch: char) -> bool {
         '-' | '_' | '=' | ':' | '{' | '}' | '.' => true,
         _ => ch.is_ascii_alphabetic() || ch.is_ascii_digit(),
     }
-}
-
-fn home_dir() -> Option<PathBuf> {
-    env::home_dir()
-}
-
-fn get_env(_name: &str) -> Option<&'static str> {
-    None
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
@@ -230,7 +219,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let mut hits = hits.collect::<Vec<String>>();
 
         if n.starts_with(".") || n.starts_with("~") { // File path candidates
-            let absolute = shellexpand::full_with_context_no_errors(n, home_dir, get_env);
+            let absolute = shellexpand::tilde(n);
             let absolute = PathBuf::from(absolute.as_ref());
             let dir = if absolute.is_dir() {
                 absolute.as_path()
@@ -240,12 +229,20 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
             if let Ok(paths) = std::fs::read_dir(dir) {
                 for dir in paths {
-                    let hd = home_dir().unwrap_or(PathBuf::from("~"));
-
                     if let Ok(p) = dir {
-                        match p.path().to_str() {
-                            Some(s) => hits.push(s.to_string().replace(hd.to_str().unwrap_or_default(), "~")),
-                            _ => {}
+                        let input_path = PathBuf::from(n);
+                        let real_path = p.path();
+
+                        match (real_path.parent(), real_path.file_name()) {
+                            (Some(_), Some(f)) => {
+                                let p = input_path
+                                    .join(f)
+                                    .to_string_lossy()
+                                    .to_string();
+
+                                hits.push(p)
+                            },
+                            _ => {},
                         }
                     }
                 }
