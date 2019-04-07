@@ -227,25 +227,23 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 absolute.parent().unwrap()
             };
 
-            if let Ok(paths) = std::fs::read_dir(dir) {
-                for dir in paths {
-                    if let Ok(p) = dir {
-                        let input_path = PathBuf::from(n);
-                        let real_path = p.path();
+            let input_path = PathBuf::from(n);
+            let paths = std::fs::read_dir(dir)
+                .and_then(|p| Ok(p.into_iter().flatten().collect::<Vec<_>>()))
+                .and_then(|paths| {
+                    let dirs = paths
+                        .iter()
+                        .map(|p| {
+                            p.path()
+                                .file_name()
+                                .map(|path| input_path.join(path).to_string_lossy().to_string())
+                        })
+                        .collect::<Vec<_>>();
+                    Ok(dirs)
+                });
 
-                        match (real_path.parent(), real_path.file_name()) {
-                            (Some(_), Some(f)) => {
-                                let p = input_path
-                                    .join(f)
-                                    .to_string_lossy()
-                                    .to_string();
-
-                                hits.push(p)
-                            },
-                            _ => {},
-                        }
-                    }
-                }
+            if let Ok(ps) = paths {
+                hits.append(&mut ps.into_iter().flatten().collect::<Vec<_>>())
             }
         }
 
