@@ -36,7 +36,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let viewer = match (stdin, help) {
             (true, _) => Viewer::new(command, SourceType::Stdin),
             (_, true) => Viewer::new(command, SourceType::Help),
-            _ => Viewer::new(command, SourceType::Man)
+            _ => Viewer::new(command, SourceType::Man),
         };
         let buffer = { viewer.source() };
 
@@ -197,7 +197,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos = n;
         }
     }
-    
+
     pub fn insert_line(&mut self, line: String) {
         self.buffer.push(line)
     }
@@ -218,7 +218,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
         let mut hits = hits.collect::<Vec<String>>();
 
-        if n.starts_with(".") || n.starts_with("~") { // File path candidates
+        if n.starts_with(".") || n.starts_with("~") {
+            // File path candidates
             let absolute = shellexpand::tilde(n);
             let absolute = PathBuf::from(absolute.as_ref());
             let dir = if absolute.is_dir() {
@@ -300,7 +301,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn incr_size(&mut self) {
-       self.size += 1;
+        self.size += 1;
     }
 
     pub fn decr_size(&mut self) {

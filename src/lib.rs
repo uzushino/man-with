@@ -1,10 +1,10 @@
 extern crate env_logger;
 extern crate failure;
 extern crate libc;
+extern crate shellexpand;
 extern crate terminal_size;
 extern crate termion;
 extern crate unicode_width;
-extern crate shellexpand;
 
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Stdout};
@@ -36,7 +36,13 @@ impl ManWith {
         let stdout = io::stdout();
         let source = source();
         let stdout = stdout.into_raw_mode().unwrap();
-        let prompt = Arc::new(Mutex::new(Prompt::new(stdout, cmd, height, help, source.is_some())));
+        let prompt = Arc::new(Mutex::new(Prompt::new(
+            stdout,
+            cmd,
+            height,
+            help,
+            source.is_some(),
+        )));
 
         ManWith {
             source: Arc::new(Mutex::new(source)),
