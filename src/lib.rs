@@ -71,6 +71,7 @@ impl ManWith {
         let _ = th.join();
 
         let mut f = self.prompt.lock().unwrap();
+        
         ui::cursor::holizon(&mut f.stdout, 1u64);
         ui::cursor::clear_line(&mut f.stdout);
 

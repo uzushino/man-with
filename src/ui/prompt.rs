@@ -229,6 +229,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
             };
 
             let input_path = PathBuf::from(n);
+            let input_path = if input_path.is_dir() {
+                input_path.as_path()
+            } else {
+                input_path.parent().unwrap()
+            };
+
             let paths = std::fs::read_dir(dir)
                 .and_then(|p| Ok(p.into_iter().flatten().collect::<Vec<_>>()))
                 .and_then(|paths| {
@@ -244,7 +250,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 });
 
             if let Ok(ps) = paths {
-                hits.append(&mut ps.into_iter().flatten().collect::<Vec<_>>())
+                hits.append(&mut ps.into_iter().flatten().filter(|p| p.starts_with(n)).collect::<Vec<_>>())
             }
         }
 
