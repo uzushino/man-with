@@ -168,7 +168,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn delete(&mut self) {
         let input = &mut self.argument[self.selected];
 
-        if let Some(_) = input[0..self.cursor].chars().next() {
+        if self.cursor == 0 || input[0..self.cursor].chars().next().is_some() {
             if input.len() > self.cursor {
                 input.remove(self.cursor);
             }
@@ -372,7 +372,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             if let Some(comp) = self.show_candidate() {
                 let s = format!(
                     "{color}{comp}{reset}",
-                    color = termion::color::Fg(termion::color::Black),
+                    color = termion::color::Fg(termion::color::Blue),
                     comp = comp,
                     reset = termion::style::Reset
                 );
