@@ -250,7 +250,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 });
 
             if let Ok(ps) = paths {
-                hits.append(&mut ps.into_iter().flatten().filter(|p| p.starts_with(n)).collect::<Vec<_>>())
+                hits.append(
+                    &mut ps
+                        .into_iter()
+                        .flatten()
+                        .filter(|p| p.starts_with(n))
+                        .collect::<Vec<_>>(),
+                )
             }
         }
 
@@ -311,9 +317,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn decr_size(&mut self) {
-        if self.size > 1 {
-            self.size -= 1;
-        }
+        self.size -= 1;
     }
 
     pub fn show_candidate(&mut self) -> Option<String> {

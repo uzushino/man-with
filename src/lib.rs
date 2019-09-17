@@ -71,7 +71,7 @@ impl ManWith {
         let _ = th.join();
 
         let mut f = self.prompt.lock().unwrap();
-        
+
         ui::cursor::holizon(&mut f.stdout, 1u64);
         ui::cursor::clear_line(&mut f.stdout);
 
@@ -88,7 +88,6 @@ impl ManWith {
 
             if let Some(ref mut b) = *src {
                 let mut buf = vec![];
-
                 match b.read_until(b'\n', &mut buf) {
                     Ok(n) if n != 0 => {
                         if buf.ends_with(&[b'\n']) || buf.ends_with(&[b'\0']) {
