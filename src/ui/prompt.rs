@@ -17,7 +17,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pub cursor: usize,
     pub viewer: Viewer,
     argument: Vec<String>,
-    completation: Option<String>,
+    completion: Option<String>,
     buffer: Vec<String>,
     pos: usize,
     size: usize,
@@ -45,7 +45,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             command: String::from(command),
             argument: vec![String::default()],
             stdout: stdout,
-            completation: None,
+            completion: None,
             viewer: viewer,
             buffer: buffer
                 .split('\n')
@@ -58,16 +58,19 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
 
+    pub fn quit(&self) {
+
+    }
+
     pub fn full_command(&self) -> (String, Vec<String>) {
         let a = self
             .argument
             .iter()
             .filter(|v| !v.is_empty())
             .map(ToString::to_string)
-            .collect::<Vec<_>>()
-            .clone();
+            .collect::<Vec<_>>();
 
-        (self.command.clone(), a)
+        (self.command.clone(), a.clone())
     }
 
     pub fn down(&mut self) {
@@ -111,7 +114,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if self.selected > 0 {
             self.selected -= 1;
             self.cursor = 0;
-            self.completation = None;
+            self.completion = None;
         }
     }
 
@@ -119,7 +122,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if self.selected < (self.argument.len() - 1) {
             self.selected += 1;
             self.cursor = 0;
-            self.completation = None;
+            self.completion = None;
         }
     }
 
@@ -134,7 +137,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn cursor_back(&mut self) {
         if self.cursor > 0 {
             self.cursor -= 1;
-            self.completation = None;
+            self.completion = None;
         }
     }
 
@@ -263,13 +266,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
         hits
     }
 
-    pub fn completation(&mut self) {
-        if let Some(comp) = &self.completation {
+    pub fn completion(&mut self) {
+        if let Some(comp) = &self.completion {
             let input = &mut self.argument[self.selected];
             input.push_str(&comp);
 
             self.cursor = input.len();
-            self.completation = None;
+            self.completion = None;
             self.pos = 0;
         }
     }
@@ -383,7 +386,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
                 cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
                 self.stdout.write(s.as_bytes())?;
-                self.completation = Some(comp);
+                self.completion = Some(comp);
 
                 cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
             }

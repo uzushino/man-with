@@ -110,6 +110,10 @@ impl ManWith {
                 match rx.recv() {
                     Ok(Event::Quit) => {
                         // Quit message.
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.quit();
+                            Ok(())
+                        });
                         break;
                     }
                     Ok(Event::ReadLine(line)) => {
@@ -138,7 +142,7 @@ impl ManWith {
                     }
                     Ok(Event::Tab) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.completation();
+                            f.completion();
                             Ok(())
                         });
                     }
