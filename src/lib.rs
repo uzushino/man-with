@@ -124,7 +124,12 @@ impl ManWith {
                     }
                     Ok(Event::Key(ch)) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            f.insert(ch);
+                            if ch == ' ' {
+                                f.append();
+                            } else {
+                                f.insert(ch);
+                            }
+
                             Ok(())
                         });
                     }
