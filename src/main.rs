@@ -43,7 +43,9 @@ fn main() -> Result<(), Error> {
     let command = matches.value_of("COMMAND").unwrap();
     let size = value_t!(matches, "SIZE", usize).unwrap_or(10);
     let help = matches.is_present("USE_HELP");
-    let result = run(command, size, help)?;
+    let history = value_t!(matches, "HISTORY", String)
+        .unwrap_or(String::from("~/.man-with.history"));
+    let result = run(command, size, help, history)?;
 
     Command::new(result.0).args(result.1).spawn()?.wait()?;
 
@@ -51,7 +53,8 @@ fn main() -> Result<(), Error> {
 }
 
 // When dropping raw mode stdout, return to original stdout.
-fn run(command: &str, size: usize, help: bool) -> Result<(String, Vec<String>), Error> {
+fn run(command: &str, size: usize, help: bool, _: String) -> Result<(String, Vec<String>), Error> {
     let app = ManWith::new(command, size, help);
+
     app.run()
 }
