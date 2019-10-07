@@ -75,7 +75,8 @@ impl ManWith {
 
         ui::cursor::holizon(&mut f.stdout, 1u64);
         ui::cursor::clear_line(&mut f.stdout);
-
+        
+        f.write_history();
         f.flush()?;
 
         Ok(f.full_command())
@@ -111,7 +112,7 @@ impl ManWith {
                 match rx.recv() {
                     Ok(Event::Quit) => {
                         // Quit message.
-                        let _ = prompt.lock().and_then(|mut f| {
+                        let _ = prompt.lock().and_then(|f| {
                             f.quit();
                             Ok(())
                         });
