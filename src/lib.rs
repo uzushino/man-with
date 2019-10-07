@@ -7,6 +7,7 @@ extern crate termion;
 extern crate unicode_width;
 
 use std::fs::File;
+
 use std::io::{self, BufRead, BufReader, Stdout};
 use std::os::unix::io::{FromRawFd, IntoRawFd};
 use std::sync::{
@@ -21,14 +22,12 @@ use termion::raw::{IntoRawMode, RawTerminal};
 mod event;
 mod ui;
 
-use std::path::PathBuf;
 use self::event::Event;
 use self::ui::{viewer::ShowType, Input, Prompt};
 
 pub type CommandWithArgument = (String, Vec<String>);
 
 pub struct ManWith {
-    history: Option<PathBuf>,
     source: Arc<Mutex<Option<BufReader<File>>>>,
     prompt: Arc<Mutex<Prompt<RawTerminal<Stdout>>>>,
 }
@@ -49,7 +48,6 @@ impl ManWith {
         ManWith {
             source: Arc::new(Mutex::new(source)),
             prompt: prompt,
-            history: None,
         }
     }
 

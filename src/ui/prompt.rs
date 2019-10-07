@@ -22,6 +22,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pos: usize,
     size: usize,
     selected: usize,
+    history: Option<PathBuf>,
 }
 
 fn is_args(ch: char) -> bool {
@@ -55,11 +56,24 @@ impl<T: Write + Send + Drop> Prompt<T> {
             pos: 0,
             size: height,
             selected: 0,
+            history: None,
         }
     }
 
-    pub fn quit(&self) {
+    pub fn quit(&self) { 
+    }
 
+    pub fn write_history(&self) {
+        if let Some(history) = &self.history {
+            let json = serde_json::to_string(&self.argument).unwrap();
+
+            std::fs::OpenOptions::new()
+                .create_new(true)
+                .append(true)
+                .open(history)
+                .and_then( |mut f| f.write_all(json.as_bytes()))
+                .unwrap();
+        }
     }
 
     pub fn full_command(&self) -> (String, Vec<String>) {

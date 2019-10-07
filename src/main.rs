@@ -44,7 +44,7 @@ fn main() -> Result<(), Error> {
     let size = value_t!(matches, "SIZE", usize).unwrap_or(10);
     let help = matches.is_present("USE_HELP");
     let history = value_t!(matches, "HISTORY", String)
-        .unwrap_or(String::from("~/.man-with.history"));
+        .unwrap_or(String::from("~/.man-with.hist"));
     let result = run(command, size, help, history)?;
 
     Command::new(result.0).args(result.1).spawn()?.wait()?;
