@@ -1,13 +1,32 @@
 use std::io::Write;
 use std::path::PathBuf;
+use serde_derive::{Serialize};
 
 use terminal_size::terminal_size;
 use termion;
-
 use super::viewer::{SourceType, Viewer};
 use crate::ui::cursor;
 
 const PROMPT: &'static str = "> ";
+
+#[derive(Serialize)]
+struct History<'a> {
+    command: &'a String, 
+    argument: &'a Vec<String>,
+}
+
+impl<'a> History<'a> {
+    fn wirte(&'a self, history: &PathBuf) {
+        let json = serde_json::to_string(self).unwrap();
+
+        std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(history)
+            .and_then( |mut f| f.write_all(json.as_bytes()))
+            .unwrap();
+    }
+}
 
 #[derive(Clone)]
 pub struct Prompt<T: Write + Send + Drop> {
@@ -56,7 +75,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             pos: 0,
             size: height,
             selected: 0,
-            history: None,
+            history: Some(PathBuf::from(".man-with.history")),
         }
     }
 
@@ -65,14 +84,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn write_history(&self) {
         if let Some(history) = &self.history {
-            let json = serde_json::to_string(&self.argument).unwrap();
+            let hist = History {
+                command: &self.command,
+                argument: &self.argument,
+            };
 
-            std::fs::OpenOptions::new()
-                .create_new(true)
-                .append(true)
-                .open(history)
-                .and_then( |mut f| f.write_all(json.as_bytes()))
-                .unwrap();
+            hist.wirte(history);
         }
     }
 
