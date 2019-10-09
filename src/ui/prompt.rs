@@ -16,7 +16,7 @@ struct History<'a> {
 }
 
 impl<'a> History<'a> {
-    fn wirte(&'a self, history: &PathBuf) {
+    fn write(&'a self, history: &PathBuf) {
         let json = serde_json::to_string(self).unwrap();
 
         std::fs::OpenOptions::new()
@@ -89,7 +89,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 argument: &self.argument,
             };
 
-            hist.wirte(history);
+            hist.write(history);
         }
     }
 
