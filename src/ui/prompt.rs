@@ -104,6 +104,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
         (self.command.clone(), a.clone())
     }
 
+    pub fn change_command(&mut self, command: String) {
+        self.command = command
+    }
+
     pub fn down(&mut self) {
         if (self.pos + 1) > self.buffer.len() {
             self.pos = self.buffer.len();
