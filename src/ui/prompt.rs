@@ -1,6 +1,6 @@
-use std::io::Write;
+use std::io::{ Write, BufRead };
 use std::path::PathBuf;
-use serde_derive::{Serialize};
+use serde_derive::{ Serialize, Deserialize };
 
 use terminal_size::terminal_size;
 use termion;
@@ -9,14 +9,14 @@ use crate::ui::cursor;
 
 const PROMPT: &'static str = "> ";
 
-#[derive(Serialize)]
-struct History<'a> {
-    command: &'a String, 
-    argument: &'a Vec<String>,
+#[derive(Serialize, Deserialize)]
+struct History {
+    command: String, 
+    argument: Vec<String>,
 }
 
-impl<'a> History<'a> {
-    fn write(&'a self, history: &PathBuf) {
+impl History {
+    fn write(&self, history: &PathBuf) {
         let json = serde_json::to_string(self).unwrap();
 
         std::fs::OpenOptions::new()
@@ -25,6 +25,23 @@ impl<'a> History<'a> {
             .open(history)
             .and_then( |mut f| f.write_all(json.as_bytes()))
             .unwrap();
+    }
+    
+    fn read(&self, history: &PathBuf) -> Vec<Vec<String>> {
+        let f = std::fs::File::open(history).unwrap();
+        let lines = std::io::BufReader::new(f).lines();
+        let mut arguments: Vec<Vec<String>> = Vec::default();
+
+        for line in lines {
+            let l = line.unwrap();
+            let hist: History = serde_json::from_str(l.as_str()).unwrap();
+
+            if hist.command == hist.command {
+               arguments.push(hist.argument.clone());
+            }
+        }
+
+        arguments
     }
 }
 
@@ -85,8 +102,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn write_history(&self) {
         if let Some(history) = &self.history {
             let hist = History {
-                command: &self.command,
-                argument: &self.argument,
+                command: self.command.clone(),
+                argument: self.argument.clone(),
             };
 
             hist.write(history);
