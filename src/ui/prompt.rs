@@ -27,7 +27,7 @@ impl History {
             .unwrap();
     }
     
-    fn read(&self, history: &PathBuf) -> Vec<Vec<String>> {
+    fn read(history: &PathBuf) -> Vec<Vec<String>> {
         let f = std::fs::File::open(history).unwrap();
         let lines = std::io::BufReader::new(f).lines();
         let mut arguments: Vec<Vec<String>> = Vec::default();
@@ -58,7 +58,8 @@ pub struct Prompt<T: Write + Send + Drop> {
     pos: usize,
     size: usize,
     selected: usize,
-    history: Option<PathBuf>,
+    history_path: Option<PathBuf>,
+    histories: Vec<Vec<String>>,
 }
 
 fn is_args(ch: char) -> bool {
@@ -92,7 +93,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
             pos: 0,
             size: height,
             selected: 0,
-            history: Some(PathBuf::from(".man-with.history")),
+            history_path: None,
+            histories: Vec::default(),
         }
     }
 
@@ -100,7 +102,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn write_history(&self) {
-        if let Some(history) = &self.history {
+        if let Some(history) = &self.history_path {
             let hist = History {
                 command: self.command.clone(),
                 argument: self.argument.clone(),
@@ -108,6 +110,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
             hist.write(history);
         }
+    }
+    
+    pub fn read_history(&self) -> Vec<Vec<String>> {
+        if let Some(history) = &self.history_path {
+            return History::read(history)
+        }
+        Vec::default()
     }
 
     pub fn full_command(&self) -> (String, Vec<String>) {
