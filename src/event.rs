@@ -4,6 +4,7 @@ pub enum Event {
     Enter,
     Backspace,
     Delete,
+    History,
     Tab,
     Forward,
     Back,

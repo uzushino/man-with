@@ -19,6 +19,7 @@ impl Input {
                     tx.send(Event::Quit)?;
                     break;
                 }
+                Key::Ctrl('r') => tx.send(Event::History)?,
                 Key::Ctrl('b') => tx.send(Event::Back)?,
                 Key::Ctrl('f') => tx.send(Event::Forward)?,
                 Key::Ctrl('p') => tx.send(Event::Prev)?,
