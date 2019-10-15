@@ -53,10 +53,11 @@ impl ManWith {
 
     pub fn run(&self) -> Result<CommandWithArgument, Error> {
         {
-            let mut p = self.prompt.lock().unwrap();
+            let mut f = self.prompt.lock().unwrap();
 
-            p.show()?;
-            p.flush()?;
+            f.read_history();
+            f.show()?;
+            f.flush()?;
         }
 
         let (tx, rx) = mpsc::channel();

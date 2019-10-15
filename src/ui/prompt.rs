@@ -116,6 +116,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if let Some(history) = &self.history_path {
             return History::read(history)
         }
+        
         Vec::default()
     }
 
