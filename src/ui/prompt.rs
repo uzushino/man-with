@@ -15,6 +15,12 @@ struct History {
     argument: Vec<String>,
 }
 
+#[derive(Clone)]
+pub enum PromptMode {
+    Prompt,
+    History,
+}
+
 impl History {
     fn write(&self, history: &PathBuf) {
         let json = serde_json::to_string(self).unwrap();
@@ -52,6 +58,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pub stdout: T,
     pub cursor: usize,
     pub viewer: Viewer,
+    pub mode: PromptMode,
     argument: Vec<String>,
     completion: Option<String>,
     buffer: Vec<String>,
@@ -95,7 +102,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
             selected: 0,
             history_path: None,
             histories: Vec::default(),
+            mode: PromptMode::Prompt,
         }
+    }
+
+    pub fn set_mode(&mut self, mode: PromptMode) {
+        self.mode = mode;
     }
 
     pub fn quit(&self) { 

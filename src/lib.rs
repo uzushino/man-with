@@ -229,6 +229,12 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::History) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.set_mode(ui::prompt::PromptMode::History);
+                            Ok(())
+                        });
+                    }
                     _ => break,
                 };
 
