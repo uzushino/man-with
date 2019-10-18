@@ -65,6 +65,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pos: usize,
     size: usize,
     selected: usize,
+    history_index: u64,
     history_path: Option<PathBuf>,
     histories: Vec<Vec<String>>,
 }
@@ -100,6 +101,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             pos: 0,
             size: height,
             selected: 0,
+            history_index: 0u64,
             history_path: None,
             histories: Vec::default(),
             mode: PromptMode::Prompt,
@@ -429,6 +431,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
 
         Vec::from(lines)
+    }
+
+    pub fn history_back(&mut self) {
+        let hist = self.histories.iter().rev()
+            .collect::<Vec<_>>()[0];
+        
+        self.argument = hist.clone();
+        self.history_index += 1
     }
 
     pub fn show(&mut self) -> Result<(), failure::Error> {
