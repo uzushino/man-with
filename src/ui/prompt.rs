@@ -434,11 +434,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn history_back(&mut self) {
-        let hist = self.histories.iter().rev()
-            .collect::<Vec<_>>()[0];
-        
-        self.argument = hist.clone();
-        self.history_index += 1
+        if let Some(_) = self.history_path {
+            let hist = self.histories.iter().rev()
+                .collect::<Vec<_>>()[self.history_index as usize];
+            
+            self.argument = hist.clone();
+            self.history_index += 1
+        }
     }
 
     pub fn show(&mut self) -> Result<(), failure::Error> {
