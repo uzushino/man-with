@@ -46,7 +46,7 @@ where
     let _ = write!(out, "\x1b[{}F", n);
 }
 
-pub fn holizon<W>(out: &mut W, n: u64)
+pub fn horizon<W>(out: &mut W, n: u64)
 where
     W: Write,
 {

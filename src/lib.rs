@@ -74,7 +74,7 @@ impl ManWith {
 
         let mut f = self.prompt.lock().unwrap();
 
-        ui::cursor::holizon(&mut f.stdout, 1u64);
+        ui::cursor::horizon(&mut f.stdout, 1u64);
         ui::cursor::clear_line(&mut f.stdout);
         
         f.write_history();

@@ -427,7 +427,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.stdout.write(l.as_bytes()).unwrap();
 
             cursor::down(&mut self.stdout, 1);
-            cursor::holizon(&mut self.stdout, 1);
+            cursor::horizon(&mut self.stdout, 1);
         }
 
         Vec::from(lines)
@@ -453,7 +453,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         if let Some(_) = size {
             self.show_input()?;
             cursor::down(&mut self.stdout, 1);
-            cursor::holizon(&mut self.stdout, 1 as u64);
+            cursor::horizon(&mut self.stdout, 1 as u64);
 
             let lines = self.show_viewer();
             cursor::up(&mut self.stdout, lines.len() as u64);
@@ -462,7 +462,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             cursor::up(&mut self.stdout, 1u64);
 
             let l = self.prompt_len();
-            cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
+            cursor::horizon(&mut self.stdout, l + self.cursor as u64 + 1);
 
             if let Some(comp) = self.show_candidate() {
                 let s = format!(
@@ -472,11 +472,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     reset = termion::style::Reset
                 );
 
-                cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
+                cursor::horizon(&mut self.stdout, l + self.cursor as u64 + 1);
                 self.stdout.write(s.as_bytes())?;
                 self.completion = Some(comp);
 
-                cursor::holizon(&mut self.stdout, l + self.cursor as u64 + 1);
+                cursor::horizon(&mut self.stdout, l + self.cursor as u64 + 1);
             }
         }
 
@@ -490,18 +490,18 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn sweep(&mut self) -> Result<(), failure::Error> {
         // input
-        cursor::holizon(&mut self.stdout, 1);
+        cursor::horizon(&mut self.stdout, 1);
         cursor::clear_line(&mut self.stdout);
         self.stdout.write(b"\n")?;
 
         // panel
         for _ in 0..self.size {
-            cursor::holizon(&mut self.stdout, 1);
+            cursor::horizon(&mut self.stdout, 1);
             cursor::clear_line(&mut self.stdout);
             self.stdout.write(b"\n")?;
         }
 
-        cursor::holizon(&mut self.stdout, 1);
+        cursor::horizon(&mut self.stdout, 1);
         cursor::up(&mut self.stdout, (self.size + 1) as u64); // panel + input
 
         Ok(())
