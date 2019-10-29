@@ -8,7 +8,7 @@ extern crate termion;
 extern crate unicode_width;
 
 use std::process::Command;
-use use std::path::PathBuf;
+use std::path::PathBuf;
 
 use clap::{App, Arg};
 use failure::Error;
