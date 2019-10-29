@@ -8,6 +8,7 @@ extern crate termion;
 extern crate unicode_width;
 
 use std::process::Command;
+use use std::path::PathBuf;
 
 use clap::{App, Arg};
 use failure::Error;
@@ -53,8 +54,7 @@ fn main() -> Result<(), Error> {
 }
 
 // When dropping raw mode stdout, return to original stdout.
-fn run(command: &str, size: usize, help: bool, _: String) -> Result<(String, Vec<String>), Error> {
-    let app = ManWith::new(command, size, help);
-
+fn run(command: &str, size: usize, help: bool, path: String) -> Result<(String, Vec<String>), Error> {
+    let app = ManWith::new(command, size, help, Some(PathBuf::from(path)));
     app.run()
 }

@@ -78,7 +78,7 @@ fn is_args(ch: char) -> bool {
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
-    pub fn new(stdout: T, command: &str, height: usize, help: bool, stdin: bool) -> Self {
+    pub fn new(stdout: T, command: &str, height: usize, help: bool, stdin: bool, history_path: Option<PathBuf>) -> Self {
         let viewer = match (stdin, help) {
             (true, _) => Viewer::new(command, SourceType::Stdin),
             (_, true) => Viewer::new(command, SourceType::Help),

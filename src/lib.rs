@@ -7,9 +7,9 @@ extern crate termion;
 extern crate unicode_width;
 
 use std::fs::File;
-
 use std::io::{self, BufRead, BufReader, Stdout};
 use std::os::unix::io::{FromRawFd, IntoRawFd};
+use std::path::PathBuf;
 use std::sync::{
     mpsc::{self, Receiver, Sender},
     Arc, Mutex,
@@ -33,7 +33,7 @@ pub struct ManWith {
 }
 
 impl ManWith {
-    pub fn new(cmd: &str, height: usize, help: bool) -> Self {
+    pub fn new(cmd: &str, height: usize, help: bool, history_path: Option<PathBuf>) -> Self {
         let stdout = io::stdout();
         let source = source();
         let stdout = stdout.into_raw_mode().unwrap();
@@ -43,6 +43,7 @@ impl ManWith {
             height,
             help,
             source.is_some(),
+            history_path,
         )));
 
         ManWith {
