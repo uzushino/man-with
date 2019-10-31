@@ -7,6 +7,7 @@ extern crate terminal_size;
 extern crate termion;
 extern crate unicode_width;
 
+use std::env;
 use std::process::Command;
 use std::path::PathBuf;
 
@@ -44,8 +45,10 @@ fn main() -> Result<(), Error> {
     let command = matches.value_of("COMMAND").unwrap();
     let size = value_t!(matches, "SIZE", usize).unwrap_or(10);
     let help = matches.is_present("USE_HELP");
-    let history = value_t!(matches, "HISTORY", String)
-        .unwrap_or(String::from("~/.man-with.hist"));
+    let history = value_t!(matches, "HISTORY", PathBuf)
+        .ok()
+        .or(env::home_dir().map(|dir| dir.join(PathBuf::from(".man-with.history"))));
+
     let result = run(command, size, help, history)?;
 
     Command::new(result.0).args(result.1).spawn()?.wait()?;
@@ -54,7 +57,7 @@ fn main() -> Result<(), Error> {
 }
 
 // When dropping raw mode stdout, return to original stdout.
-fn run(command: &str, size: usize, help: bool, path: String) -> Result<(String, Vec<String>), Error> {
-    let app = ManWith::new(command, size, help, Some(PathBuf::from(path)));
+fn run(command: &str, size: usize, help: bool, path: Option<PathBuf>) -> Result<(String, Vec<String>), Error> {
+    let app = ManWith::new(command, size, help, path);
     app.run()
 }

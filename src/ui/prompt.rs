@@ -102,7 +102,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             size: height,
             selected: 0,
             history_index: 0u64,
-            history_path: None,
+            history_path,
             histories: Vec::default(),
             mode: PromptMode::Prompt,
         }
