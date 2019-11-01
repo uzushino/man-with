@@ -26,7 +26,6 @@ impl History {
         let json = serde_json::to_string(self).unwrap();
 
         std::fs::OpenOptions::new()
-            .create(true)
             .append(true)
             .open(history)
             .and_then( |mut f| f.write_all(json.as_bytes()))
@@ -34,20 +33,24 @@ impl History {
     }
     
     fn read(history: &PathBuf) -> Vec<Vec<String>> {
-        let f = std::fs::File::open(history).unwrap();
-        let lines = std::io::BufReader::new(f).lines();
-        let mut arguments: Vec<Vec<String>> = Vec::default();
+        std::fs::OpenOptions::new()
+            .read(true)
+            .open(history)
+            .and_then(|f| {
+                let lines = std::io::BufReader::new(f).lines();
+                let mut arguments: Vec<Vec<String>> = Vec::default();
 
-        for line in lines {
-            let l = line.unwrap();
-            let hist: History = serde_json::from_str(l.as_str()).unwrap();
+                for line in lines {
+                    let l = line.unwrap();
+                    let hist: History = serde_json::from_str(l.as_str()).unwrap();
+                    if hist.command == hist.command {
+                        arguments.push(hist.argument.clone());
+                    }
+                }
 
-            if hist.command == hist.command {
-               arguments.push(hist.argument.clone());
-            }
-        }
-
-        arguments
+                Ok(arguments)
+            })
+            .unwrap()
     }
 }
 
