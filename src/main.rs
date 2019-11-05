@@ -47,7 +47,7 @@ fn main() -> Result<(), Error> {
     let help = matches.is_present("USE_HELP");
     let history = value_t!(matches, "HISTORY", PathBuf)
         .ok()
-        .or(env::home_dir().map(|dir| dir.join(PathBuf::from(".man-with.history"))));
+        .or(dirs::home_dir().map(|dir| dir.join(PathBuf::from(".man-with.history"))));
 
     let result = run(command, size, help, history)?;
 
