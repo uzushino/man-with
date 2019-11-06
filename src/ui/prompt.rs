@@ -25,32 +25,33 @@ impl History {
     fn write(&self, history: &PathBuf) {
         let json = serde_json::to_string(self).unwrap();
 
-        std::fs::OpenOptions::new()
+        let mut f = std::fs::OpenOptions::new()
             .append(true)
             .open(history)
-            .and_then( |mut f| f.write_all(json.as_bytes()))
             .unwrap();
+
+        f.write_all(json.as_bytes()).unwrap();
     }
     
     fn read(history: &PathBuf) -> Vec<Vec<String>> {
-        std::fs::OpenOptions::new()
+        let f = std::fs::OpenOptions::new()
+            .create(true)
             .read(true)
             .open(history)
-            .and_then(|f| {
-                let lines = std::io::BufReader::new(f).lines();
-                let mut arguments: Vec<Vec<String>> = Vec::default();
+            .unwrap();
+        
+        let lines = std::io::BufReader::new(f).lines();
+        let mut arguments: Vec<Vec<String>> = Vec::default();
 
-                for line in lines {
-                    let l = line.unwrap();
-                    let hist: History = serde_json::from_str(l.as_str()).unwrap();
-                    if hist.command == hist.command {
-                        arguments.push(hist.argument.clone());
-                    }
-                }
+        for line in lines {
+            let l = line.unwrap();
+            let hist: History = serde_json::from_str(l.as_str()).unwrap();
+            if hist.command == hist.command {
+                arguments.push(hist.argument.clone());
+            }
+        }
 
-                Ok(arguments)
-            })
-            .unwrap()
+        arguments
     }
 }
 
