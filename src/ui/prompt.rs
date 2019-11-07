@@ -34,11 +34,15 @@ impl History {
     }
     
     fn read(history: &PathBuf) -> Vec<Vec<String>> {
-        let f = std::fs::OpenOptions::new()
-            .create(true)
-            .read(true)
-            .open(history)
-            .unwrap();
+        let exists = std::path::Path::new(history).exists();
+        let f = if exists {
+            std::fs::OpenOptions::new()
+                .read(true)
+                .open(history)
+                .unwrap()
+        } else {
+            std::fs::File::create(history).unwrap()
+        };
         
         let lines = std::io::BufReader::new(f).lines();
         let mut arguments: Vec<Vec<String>> = Vec::default();
