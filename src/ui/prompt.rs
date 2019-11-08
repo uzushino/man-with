@@ -34,24 +34,22 @@ impl History {
     }
     
     fn read(history: &PathBuf) -> Vec<Vec<String>> {
-        let exists = std::path::Path::new(history).exists();
-        let f = if exists {
-            std::fs::OpenOptions::new()
-                .read(true)
-                .open(history)
-                .unwrap()
-        } else {
-            std::fs::File::create(history).unwrap()
+        let f = match std::path::Path::new(history).exists() {
+            true => std::fs::File::open(history),
+            _ => std::fs::File::create(history)
         };
-        
-        let lines = std::io::BufReader::new(f).lines();
+       
         let mut arguments: Vec<Vec<String>> = Vec::default();
 
-        for line in lines {
-            let l = line.unwrap();
-            let hist: History = serde_json::from_str(l.as_str()).unwrap();
-            if hist.command == hist.command {
-                arguments.push(hist.argument.clone());
+        if let Ok(file) = f {
+            let lines = std::io::BufReader::new(file).lines();
+
+            for line in lines {
+                let l = line.unwrap();
+                let hist: History = serde_json::from_str(l.as_str()).unwrap();
+                if hist.command == hist.command {
+                    arguments.push(hist.argument.clone());
+                }
             }
         }
 
