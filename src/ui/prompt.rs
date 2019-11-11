@@ -123,12 +123,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn write_history(&self) {
         if let Some(history) = &self.history_path {
-            let hist = History {
-                command: self.command.clone(),
-                argument: self.argument.clone(),
-            };
-
-            hist.write(history);
+            if !self.argument.is_empty() {
+                let hist = History {
+                    command: self.command.clone(),
+                    argument: self.argument.to_owned(),
+                };
+                hist.write(history);
+            }
         }
     }
     
