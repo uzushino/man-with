@@ -25,30 +25,36 @@ impl History {
     fn write(&self, history: &PathBuf) {
         let json = serde_json::to_string(self).unwrap();
 
-        let mut f = std::fs::OpenOptions::new()
+        std::fs::OpenOptions::new()
             .append(true)
             .open(history)
+            .and_then(|mut f| {
+                f.write_all(json.as_bytes())
+                .and_then(move |_| f.write(b"\n"))
+            })
             .unwrap();
-
-        f.write_all(json.as_bytes()).unwrap();
     }
     
     fn read(history: &PathBuf) -> Vec<Vec<String>> {
-        let f = match std::path::Path::new(history).exists() {
-            true => std::fs::File::open(history),
-            _ => std::fs::File::create(history)
-        };
-       
+        if !std::path::Path::new(history).exists() {
+            return Vec::default()
+        }
+
+        let f = std::fs::File::open(history);
         let mut arguments: Vec<Vec<String>> = Vec::default();
 
         if let Ok(file) = f {
             let lines = std::io::BufReader::new(file).lines();
-
             for line in lines {
                 let l = line.unwrap();
-                let hist: History = serde_json::from_str(l.as_str()).unwrap();
-                if hist.command == hist.command {
-                    arguments.push(hist.argument.clone());
+                let hist: Result<History, _> = serde_json::from_str(l.as_str());
+                match hist {
+                    Ok(hist) => {
+                        if hist.command == hist.command {
+                            arguments.push(hist.argument.clone())
+                        }
+                    }
+                    _ =>  {}
                 }
             }
         }
@@ -123,10 +129,15 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn write_history(&self) {
         if let Some(history) = &self.history_path {
-            if !self.argument.is_empty() {
+            let args = self.argument
+                .clone()
+                .into_iter()
+                .filter(|s| !s.is_empty())
+                .collect::<Vec<_>>();
+            if !args.is_empty() {
                 let hist = History {
                     command: self.command.clone(),
-                    argument: self.argument.to_owned(),
+                    argument: args.clone(),
                 };
                 hist.write(history);
             }
