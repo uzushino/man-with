@@ -26,6 +26,7 @@ impl History {
         let json = serde_json::to_string(self).unwrap();
 
         std::fs::OpenOptions::new()
+            .create(true)
             .append(true)
             .open(history)
             .and_then(|mut f| {
@@ -35,7 +36,7 @@ impl History {
             .unwrap();
     }
     
-    fn read(history: &PathBuf) -> Vec<Vec<String>> {
+    fn read(command: &String, history: &PathBuf) -> Vec<Vec<String>> {
         if !std::path::Path::new(history).exists() {
             return Vec::default()
         }
@@ -48,10 +49,12 @@ impl History {
             for line in lines {
                 let l = line.unwrap();
                 let hist: Result<History, _> = serde_json::from_str(l.as_str());
+
                 match hist {
-                    Ok(hist) => {
-                        if hist.command == hist.command {
-                            arguments.push(hist.argument.clone())
+                    Ok(mut h) => {
+                        if *command == h.command {
+                            h.argument.push(String::default());
+                            arguments.push(h.argument.clone())
                         }
                     }
                     _ =>  {}
@@ -146,7 +149,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     
     pub fn read_history(&self) -> Vec<Vec<String>> {
         if let Some(history) = &self.history_path {
-            return History::read(history)
+            return History::read(&self.command, history)
         }
         
         Vec::default()
@@ -163,6 +166,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
         (self.command.clone(), a.clone())
     }
 
+    #[allow(dead_code)]
     pub fn change_command(&mut self, command: String) {
         self.command = command
     }
