@@ -147,12 +147,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
     
-    pub fn read_history(&self) -> Vec<Vec<String>> {
+    pub fn read_history(&mut self) {
         if let Some(history) = &self.history_path {
-            return History::read(&self.command, history)
+            let histories = History::read(&self.command, history);
+            self.histories = histories;
         }
-        
-        Vec::default()
     }
 
     pub fn full_command(&self) -> (String, Vec<String>) {
@@ -461,7 +460,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 .collect::<Vec<_>>();
 
             if let Some(hist) = hist.get(self.history_index as usize) {
+                self.selected = (*hist).len() - 1;
                 self.argument = (*hist).clone();
+
+                self.cursor = 0;
                 self.history_index += 1;
             }
         }
