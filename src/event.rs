@@ -16,6 +16,8 @@ pub enum Event {
     Right,
     Quit,
 
+    Beginning,
+
     Fn1,
     Fn2,
     Fn3,

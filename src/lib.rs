@@ -238,6 +238,12 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::Beginning) => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.beginning_of_line();
+                            Ok(())
+                        });
+                    }
                     _ => break,
                 };
 

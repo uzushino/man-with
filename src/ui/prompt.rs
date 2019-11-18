@@ -222,6 +222,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.completion = None;
         }
     }
+    
+    pub fn beginning_of_line(&mut self) {
+        self.selected = 0;
+        self.cursor = 1;
+    }
 
     pub fn cursor_forward(&mut self) {
         let input = &self.argument[self.selected];
