@@ -16,7 +16,7 @@ pub enum Event {
     Right,
     Quit,
 
-    Beginning,
+    MoveTo(i32),
 
     Fn1,
     Fn2,

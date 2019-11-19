@@ -15,7 +15,8 @@ impl Input {
 
         for c in stdin.keys() {
             let _ = match c? {
-                Key::Ctrl('a') => tx.send(Event::Beginning)?,
+                Key::Ctrl('a') => tx.send(Event::MoveTo(0))?,
+                Key::Ctrl('e') => tx.send(Event::MoveTo(-1))?,
                 Key::Ctrl('c') => {
                     tx.send(Event::Quit)?;
                     break;
