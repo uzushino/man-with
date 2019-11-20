@@ -223,6 +223,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
     
+    pub fn end_of_line(&mut self) {
+        self.selected = self.argument.len() - 1;
+        self.cursor = self.argument[self.selected].len();
+    }
+    
     pub fn beginning_of_line(&mut self) {
         self.selected = 0;
         self.cursor = 1;

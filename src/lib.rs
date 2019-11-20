@@ -244,6 +244,14 @@ impl ManWith {
                             Ok(())
                         });
                     }
+                    Ok(Event::MoveTo(n)) => {
+                        if n < 0 {
+                            let _ = prompt.lock().and_then(|mut f| {
+                                f.end_of_line();
+                                Ok(())
+                            });
+                        }
+                    }
                     _ => break,
                 };
 
