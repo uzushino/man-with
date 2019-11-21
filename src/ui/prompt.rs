@@ -74,7 +74,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pub cursor: usize,
     pub viewer: Viewer,
     pub mode: PromptMode,
-    argument: Vec<String>,
+    pub argument: Vec<String>,
     completion: Option<String>,
     buffer: Vec<String>,
     pos: usize,
@@ -105,7 +105,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             panel: vec![String::new(); height],
             command: String::from(command),
             argument: vec![String::default()],
-            stdout: stdout,
+            stdout,
             completion: None,
             viewer: viewer,
             buffer: buffer
@@ -543,5 +543,31 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn is_last(&self) -> bool {
         self.selected == self.argument.len() - 1
+    }
+}
+
+mod test {
+    use std::os::unix::io::{FromRawFd, IntoRawFd};
+    use termion::raw::{IntoRawMode, RawTerminal};
+
+    use super::*;
+
+    #[test]
+    fn end_of_line() {
+        let stdout = std::io::stdout();
+        let stdout = stdout.into_raw_mode().unwrap();
+        let mut prompt = Prompt::new(
+            stdout,
+            &"diff".to_owned(),
+            10,
+            false,
+            false,
+            None,
+        );
+
+        prompt.argument.push("abc".to_string());
+        prompt.end_of_line();
+
+        assert_eq!(3, prompt.cursor)
     }
 }
