@@ -19,6 +19,7 @@ struct History {
 pub enum PromptMode {
     Prompt,
     History,
+    File
 }
 
 impl History {

@@ -128,10 +128,13 @@ impl ManWith {
                     }
                     Ok(Event::Key(ch)) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            if ch == ' ' {
-                                f.append();
-                            } else {
-                                f.insert(ch);
+                            match ch {
+                                ' ' => f.append(),
+                                '.' | '/' => {
+                                    f.set_mode(ui::prompt::PromptMode::File);
+                                    f.insert(ch)
+                                },
+                                _ => f.insert(ch)
                             }
 
                             Ok(())
