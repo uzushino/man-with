@@ -124,6 +124,17 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
 
+    pub fn file_source(base: &str) -> Vec<String> {
+        let mut result = Vec::default();
+
+        for entry in walkdir::WalkDir::new(base) {
+            let entry = entry.unwrap();
+            result.push(entry.path().display().to_string());
+        }
+
+        result
+    }
+
     pub fn set_mode(&mut self, mode: PromptMode) {
         self.mode = mode;
     }
