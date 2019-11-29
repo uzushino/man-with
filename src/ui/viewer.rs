@@ -5,6 +5,7 @@ pub enum SourceType {
     Man,
     Help,
     Stdin,
+    File,
 }
 
 #[derive(Clone, PartialEq)]
@@ -33,6 +34,7 @@ impl Viewer {
         match self.source_type {
             SourceType::Man => self.man(),
             SourceType::Help => self.help(),
+            SourceType::File => self.file_path(None),
             SourceType::Stdin => String::default(),
         }
     }
@@ -75,5 +77,23 @@ impl Viewer {
         let out = cmd.stdout;
 
         String::from_utf8_lossy(&out).to_string()
+    }
+
+    pub fn file_path(&self, path: Option<std::path::PathBuf>) -> String {
+        let mut result = Vec::default();
+
+        let path = if let Some(base) = path {
+            base
+        } else {
+            std::env::current_dir()
+                .unwrap_or(std::path::PathBuf::from("."))
+        };
+
+        for entry in walkdir::WalkDir::new(path) {
+            let entry = entry.unwrap();
+            result.push(entry.path().display().to_string());
+        }
+
+        result.join("\n")
     }
 }
