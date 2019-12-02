@@ -100,7 +100,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
             (_, true) => Viewer::new(command, SourceType::Help),
             _ => Viewer::new(command, SourceType::Man),
         };
-        let buffer = { viewer.source() };
+       
+        let buffer = { 
+            viewer.source() 
+        };
 
         Prompt {
             panel: vec![String::new(); height],
@@ -126,6 +129,22 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn set_mode(&mut self, mode: PromptMode) {
         self.mode = mode;
+
+        match self.mode {
+            PromptMode::File => {
+                self.buffer = self.viewer.file_path(None)
+                    .split('\n')
+                    .map(ToString::to_string)
+                    .collect::<Vec<String>>()
+            },
+            PromptMode::Prompt => {
+                self.buffer = self.viewer.source()
+                    .split('\n')
+                    .map(ToString::to_string)
+                    .collect::<Vec<String>>()
+            }
+            _ => { }
+        }
     }
 
     pub fn quit(&self) { 
