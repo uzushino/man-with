@@ -76,7 +76,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     pub viewer: Viewer,
     pub mode: PromptMode,
     pub argument: Vec<String>,
-    completion: Option<String>,
+    pub completion: Option<String>,
     buffer: Vec<String>,
     pos: usize,
     size: usize,
@@ -145,6 +145,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
             }
             _ => { }
         }
+    }
+
+    pub fn get_mode(&self) -> PromptMode {
+        self.mode
     }
 
     pub fn quit(&self) { 

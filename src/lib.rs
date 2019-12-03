@@ -23,7 +23,14 @@ mod event;
 mod ui;
 
 use self::event::Event;
-use self::ui::{viewer::ShowType, Input, Prompt};
+use self::ui::{
+    viewer::ShowType, 
+    Input, 
+    prompt::{
+        Prompt,
+        PromptMode,
+    }
+};
 
 pub type CommandWithArgument = (String, Vec<String>);
 
@@ -160,9 +167,16 @@ impl ManWith {
                     }
                     Ok(Event::Enter) => {
                         let mut f = prompt.lock().unwrap();
-
                         if f.cursor > 0 {
-                            f.append(); // Append command arguments.
+                            match f.get_mode() {
+                                ui::prompt::PromptMode::File => {
+                                    if let Some(line) = f.completion.clone() {
+                                        f.insert_line(line);
+                                    }
+                                    f.set_mode(PromptMode::Prompt)
+                                },
+                                _ => f.append(),
+                            }
                         } else if f.is_last() {
                             break;
                         }
