@@ -148,7 +148,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn get_mode(&self) -> PromptMode {
-        self.mode
+        self.mode.clone()
     }
 
     pub fn quit(&self) { 
