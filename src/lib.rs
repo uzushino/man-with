@@ -19,8 +19,8 @@ use std::thread::{self, JoinHandle};
 use failure::Error;
 use termion::raw::{IntoRawMode, RawTerminal};
 
-mod event;
 mod ui;
+mod event;
 
 use self::event::Event;
 use self::ui::{
@@ -121,8 +121,12 @@ impl ManWith {
                 match rx.recv() {
                     Ok(Event::Quit) => {
                         // Quit message.
-                        let _ = prompt.lock().and_then(|f| {
-                            f.quit();
+                        let _ = prompt.lock().and_then(|mut f| {
+                            match f.mode {
+                                PromptMode::File => f.set_mode(PromptMode::Prompt),
+                                _ => f.quit(),
+                            }
+
                             Ok(())
                         });
                         break;
@@ -137,13 +141,15 @@ impl ManWith {
                         let _ = prompt.lock().and_then(|mut f| {
                             match ch {
                                 ' ' => f.append(),
-                                '.' | '/' => {
-                                    f.set_mode(ui::prompt::PromptMode::File);
-                                    f.insert(ch)
-                                },
                                 _ => f.insert(ch)
                             }
 
+                            Ok(())
+                        });
+                    }
+                    Ok(Event::Candidate(candidate)) if candidate == PromptMode::File => {
+                        let _ = prompt.lock().and_then(|mut f| {
+                            f.set_mode(ui::prompt::PromptMode::File);
                             Ok(())
                         });
                     }

@@ -15,7 +15,7 @@ struct History {
     argument: Vec<String>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum PromptMode {
     Prompt,
     History,

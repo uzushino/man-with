@@ -1,6 +1,7 @@
 pub enum Event {
     Key(char),
     ReadLine(String),
+    Candidate(super::ui::prompt::PromptMode),
     Enter,
     Backspace,
     Delete,
