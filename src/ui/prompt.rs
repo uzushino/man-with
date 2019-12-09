@@ -19,7 +19,8 @@ struct History {
 pub enum PromptMode {
     Prompt,
     History,
-    File
+    File,
+    Choose,
 }
 
 impl History {
@@ -142,6 +143,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     .split('\n')
                     .map(ToString::to_string)
                     .collect::<Vec<String>>()
+            },
+            PromptMode::Choose => {
+                self.buffer = vec![
+                    "man".to_owned(),
+                    "file".to_owned(),
+                ];
             }
             _ => { }
         }
