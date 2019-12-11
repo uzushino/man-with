@@ -183,10 +183,11 @@ impl ManWith {
                         if f.cursor > 0 {
                             match f.get_mode() {
                                 ui::prompt::PromptMode::Choose => {
-                                    let a = f.completion.as_ref().map(AsRef::as_ref);
-                                    match a {
-                                        Some("man") => f.set_mode(PromptMode::Prompt),
-                                        Some("file") => f.set_mode(PromptMode::File),
+                                    let a = f.current_input();
+
+                                    match a.as_ref() {
+                                        "man" => f.set_mode(PromptMode::Prompt),
+                                        "file" => f.set_mode(PromptMode::File),
                                         _ => {}
                                     }
                                 },

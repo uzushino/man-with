@@ -178,6 +178,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
     
+    pub fn current_input(&self) -> &String {
+        &self.argument[self.selected]
+    }
+
     pub fn read_history(&mut self) {
         if let Some(history) = &self.history_path {
             let histories = History::read(&self.command, history);
