@@ -182,6 +182,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
         &self.argument[self.selected]
     }
 
+    pub fn clear_input(&mut self) {
+        self.argument[self.selected] = String::default();
+    }
+
     pub fn read_history(&mut self) {
         if let Some(history) = &self.history_path {
             let histories = History::read(&self.command, history);

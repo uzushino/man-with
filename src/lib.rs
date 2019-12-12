@@ -184,12 +184,12 @@ impl ManWith {
                             match f.get_mode() {
                                 ui::prompt::PromptMode::Choose => {
                                     let a = f.current_input();
-
                                     match a.as_ref() {
                                         "man" => f.set_mode(PromptMode::Prompt),
                                         "file" => f.set_mode(PromptMode::File),
                                         _ => {}
                                     }
+                                    f.clear_input()
                                 },
                                 ui::prompt::PromptMode::File => {
                                     if let Some(line) = f.completion.clone() {
