@@ -9,18 +9,18 @@ use crate::ui::cursor;
 
 const PROMPT: &'static str = "> ";
 
-#[derive(Serialize, Deserialize)]
-struct History {
-    command: String, 
-    argument: Vec<String>,
-}
-
 #[derive(Clone, PartialEq)]
 pub enum PromptMode {
     Prompt,
     History,
     File,
     Choose,
+}
+
+#[derive(Serialize, Deserialize)]
+struct History {
+    command: String, 
+    argument: Vec<String>,
 }
 
 impl History {
@@ -209,14 +209,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
         self.command = command
     }
 
-    pub fn down(&mut self) {
-        if (self.pos + 1) > self.buffer.len() {
-            self.pos = self.buffer.len();
-        } else {
-            self.pos += 1;
-        }
-    }
-
     pub fn up(&mut self) {
         let pos = self.pos as i64;
 
@@ -224,6 +216,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos = 0;
         } else {
             self.pos -= 1;
+        }
+    }
+
+    pub fn down(&mut self) {
+        if (self.pos + 1) > self.buffer.len() {
+            self.pos = self.buffer.len();
+        } else {
+            self.pos += 1;
         }
     }
 

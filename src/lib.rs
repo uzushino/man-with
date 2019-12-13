@@ -139,9 +139,15 @@ impl ManWith {
                     }
                     Ok(Event::Key(ch)) => {
                         let _ = prompt.lock().and_then(|mut f| {
-                            match ch {
-                                ' ' => f.append(),
-                                _ => f.insert(ch)
+                            match f.get_mode() {
+                                ui::prompt::PromptMode::Choose => {},
+                                ui::prompt::PromptMode::Prompt => {
+                                    match ch {
+                                        ' ' => f.append(),
+                                        _ => f.insert(ch)
+                                    }
+                                },
+                                _ => {}
                             }
 
                             Ok(())
@@ -185,11 +191,14 @@ impl ManWith {
                                 ui::prompt::PromptMode::Choose => {
                                     let a = f.current_input();
                                     match a.as_ref() {
-                                        "man" => f.set_mode(PromptMode::Prompt),
-                                        "file" => f.set_mode(PromptMode::File),
+                                        "man" => {
+                                            f.set_mode(PromptMode::Prompt)
+                                        },
+                                        "file" => {
+                                            f.set_mode(PromptMode::File)
+                                        },
                                         _ => {}
                                     }
-                                    f.clear_input()
                                 },
                                 ui::prompt::PromptMode::File => {
                                     if let Some(line) = f.completion.clone() {
