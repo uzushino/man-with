@@ -85,6 +85,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     history_index: u64,
     history_path: Option<PathBuf>,
     histories: Vec<Vec<String>>,
+    choose_pos: usize,
 }
 
 fn is_args(ch: char) -> bool {
@@ -125,6 +126,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             history_path,
             histories: Vec::default(),
             mode: PromptMode::Prompt,
+            choose_pos: 0,
         }
     }
 
@@ -228,21 +230,40 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn next(&mut self) {
-        let s = self.pos + 1;
-        let b = &self.buffer[s..self.buffer.len()];
+        match self.get_mode() {
+            PromptMode::Choose => {
+                if self.buffer.len() > self.choose_pos + 1 {
+                    self.choose_pos += 1;
+                }
+            },
+            _ => {
+                let s = self.pos + 1;
+                let b = &self.buffer[s..self.buffer.len()];
 
-        if let Some(n) = self.find_position(&b.to_vec()) {
-            self.pos = s + n;
+                if let Some(n) = self.find_position(&b.to_vec()) {
+                    self.pos = s + n;
+                }
+            }
         }
     }
 
     pub fn prev(&mut self) {
-        let e = self.pos - 1;
-        let mut b = self.buffer[0..e].to_vec();
-        b.reverse();
-
-        if let Some(n) = self.find_position(&b) {
-            self.pos = e - n - 1;
+        match self.get_mode() {
+            PromptMode::Choose => {
+                if (self.choose_pos as i32 - 1) < 0 {
+                    self.choose_pos = 0
+                } else {
+                    self.choose_pos -= 1
+                }
+            },
+            _ => {
+                let e = self.pos - 1;
+                let mut b = self.buffer[0..e].to_vec();
+                b.reverse();
+                if let Some(n) = self.find_position(&b) {
+                    self.pos = e - n - 1;
+                }
+            }
         }
     }
 
@@ -486,15 +507,29 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn show_viewer(&mut self) -> Vec<String> {
         let (s, e) = self.viewpoint();
         let mut buffer = self.viewer.show(self.buffer.clone());
-        let input = &self.argument[self.selected];
 
-        let decorated = format!(
-            "{red}{input}{reset}",
-            red = termion::color::Fg(termion::color::Red),
-            input = input,
-            reset = termion::style::Reset
-        );
-        buffer[self.pos] = buffer[self.pos].replace(input, &decorated);
+        match self.get_mode() {
+            PromptMode::Choose => {
+                let line = &self.buffer[self.choose_pos];
+                let decorated = format!(
+                    "{red}{input}{reset}",
+                    red = termion::color::Bg(termion::color::Red),
+                    input = line,
+                    reset = termion::style::Reset
+                );
+                buffer[self.choose_pos] = decorated;
+            },
+            _ => {
+                let input = &self.argument[self.selected];
+                let decorated = format!(
+                    "{red}{input}{reset}",
+                    red = termion::color::Fg(termion::color::Red),
+                    input = input,
+                    reset = termion::style::Reset
+                );
+                buffer[self.pos] = buffer[self.pos].replace(input, &decorated);
+            }
+        }
 
         let lines = &buffer[s..e];
         for l in lines {
