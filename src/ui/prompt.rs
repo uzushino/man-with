@@ -181,7 +181,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
     
     pub fn current_input(&self) -> &String {
-        &self.argument[self.selected]
+        match self.get_mode() {
+            PromptMode::Choose => {
+                &self.buffer[self.choose_pos]
+            },
+            _ => &self.argument[self.selected]
+        }
     }
 
     pub fn clear_input(&mut self) {
