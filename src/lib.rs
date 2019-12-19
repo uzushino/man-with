@@ -185,32 +185,32 @@ impl ManWith {
                     }
                     Ok(Event::Enter) => {
                         let mut f = prompt.lock().unwrap();
-                        
-                        if f.cursor > 0 {
-                            match f.get_mode() {
-                                ui::prompt::PromptMode::Choose => {
-                                    let a = f.current_input();
-                                    match a.as_ref() {
-                                        "man" => {
-                                            f.set_mode(PromptMode::Prompt)
-                                        },
-                                        "file" => {
-                                            f.set_mode(PromptMode::File)
-                                        },
-                                        _ => {}
-                                    }
-                                },
-                                ui::prompt::PromptMode::File => {
+                        match f.get_mode() {
+                            ui::prompt::PromptMode::Choose => {
+                                let a = f.current_input();
+                                match a.as_ref() {
+                                    "man" => {
+                                        f.set_mode(PromptMode::Prompt)
+                                    },
+                                    "file" => {
+                                        f.set_mode(PromptMode::File)
+                                    },
+                                    _ => {}
+                                }
+                            },
+                            ui::prompt::PromptMode::File => {
+                                if f.cursor > 0 {
                                     if let Some(line) = f.completion.clone() {
                                         f.insert_line(line);
                                     }
                                     f.set_mode(PromptMode::Prompt)
-                                },
-                                _ => f.append(),
-                            }
-                        } else if f.is_last() {
-                            break;
+                                } else if f.is_last() {
+                                    break;
+                                }
+                            },
+                            _ => f.append(),
                         }
+                        
                     }
                     Ok(Event::Up) => {
                         let _ = prompt.lock().and_then(|mut f| {
