@@ -590,6 +590,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 );
 
                 cursor::horizon(&mut self.stdout, l + self.cursor as u64 + 1);
+                
                 self.stdout.write(s.as_bytes())?;
                 self.completion = Some(comp);
 

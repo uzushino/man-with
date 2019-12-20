@@ -122,11 +122,7 @@ impl ManWith {
                     Ok(Event::Quit) => {
                         // Quit message.
                         let _ = prompt.lock().and_then(|mut f| {
-                            match f.mode {
-                                PromptMode::File => f.set_mode(PromptMode::Prompt),
-                                _ => f.quit(),
-                            }
-
+                            f.quit();
                             Ok(())
                         });
                         break;
@@ -141,7 +137,7 @@ impl ManWith {
                         let _ = prompt.lock().and_then(|mut f| {
                             match f.get_mode() {
                                 ui::prompt::PromptMode::Choose => {},
-                                ui::prompt::PromptMode::Prompt => {
+                                ui::prompt::PromptMode::Prompt | ui::prompt::PromptMode::File => {
                                     match ch {
                                         ' ' => f.append(),
                                         _ => f.insert(ch)
@@ -198,12 +194,12 @@ impl ManWith {
                                     _ => {}
                                 }
                             },
-                            ui::prompt::PromptMode::File => {
+                            ui::prompt::PromptMode::Prompt => {
                                 if f.cursor > 0 {
                                     if let Some(line) = f.completion.clone() {
                                         f.insert_line(line);
+                                        f.append();
                                     }
-                                    f.set_mode(PromptMode::Prompt)
                                 } else if f.is_last() {
                                     break;
                                 }
