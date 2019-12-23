@@ -90,7 +90,7 @@ pub struct Prompt<T: Write + Send + Drop> {
 
 fn is_args(ch: char) -> bool {
     match ch {
-        '-' | '_' | '=' | ':' | '{' | '}' | '.' => true,
+        '/' | '-' | '_' | '=' | ':' | '{' | '}' | '.' => true,
         _ => ch.is_ascii_alphabetic() || ch.is_ascii_digit(),
     }
 }
@@ -444,10 +444,17 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn completion(&mut self) {
         if let Some(comp) = &self.completion {
-            let input = &mut self.argument[self.selected];
-            input.push_str(&comp);
-
-            self.cursor = input.len();
+            match self.get_mode() {
+                PromptMode::File => {
+                    let input = &mut self.argument[self.selected];
+                    input.push_str(self.buffer[self.pos].as_str());
+                },
+                _ => {
+                    let input = &mut self.argument[self.selected];
+                    input.push_str(&comp);
+                    self.cursor = input.len();
+                },
+            }
             self.completion = None;
             self.pos = 0;
         }
