@@ -189,6 +189,10 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
 
+    pub fn current_buffer_line(&self) -> &String {
+        &self.buffer[self.pos]
+    }
+
     pub fn clear_input(&mut self) {
         self.argument[self.selected] = String::default();
     }
@@ -376,9 +380,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos = n;
         }
     }
-
+    
     pub fn insert_line(&mut self, line: String) {
         self.buffer.push(line)
+    }
+
+    pub fn append_argument(&mut self, s: String) {
+        let input = &mut self.argument[self.selected];
+        input.push_str(&s);
     }
 
     fn candidates(&self) -> Vec<String> {
@@ -530,6 +539,16 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     reset = termion::style::Reset
                 );
                 buffer[self.choose_pos] = decorated;
+            },
+            PromptMode::File => {
+                let line = &self.buffer[self.pos];
+                let decorated = format!(
+                    "{red}{input}{reset}",
+                    red = termion::color::Bg(termion::color::Red),
+                    input = line,
+                    reset = termion::style::Reset
+                );
+                buffer[self.pos] = decorated;
             },
             _ => {
                 let input = &self.argument[self.selected];

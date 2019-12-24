@@ -196,13 +196,17 @@ impl ManWith {
                             },
                             ui::prompt::PromptMode::Prompt => {
                                 if f.cursor > 0 {
-                                    if let Some(line) = f.completion.clone() {
-                                        f.insert_line(line);
+                                    if !f.argument.is_empty() {
                                         f.append();
                                     }
                                 } else if f.is_last() {
                                     break;
                                 }
+                            },
+                            ui::prompt::PromptMode::File => {
+                                let line = f.current_buffer_line().clone();
+                                f.append_argument(line);
+                                f.append();
                             },
                             _ => f.append(),
                         }
