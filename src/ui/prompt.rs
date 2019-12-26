@@ -86,6 +86,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     history_path: Option<PathBuf>,
     histories: Vec<Vec<String>>,
     choose_pos: usize,
+    save_argument: Option<Vec<String>>
 }
 
 fn is_args(ch: char) -> bool {
@@ -127,6 +128,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             histories: Vec::default(),
             mode: PromptMode::Prompt,
             choose_pos: 0,
+            save_argument: None
         }
     }
 
@@ -362,6 +364,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
         }
     }
 
+    pub fn save_cache(&mut self) {
+        self.save_argument = Some(self.argument.clone());
+    }
+
+    pub fn clear_cache(&mut self) {
+        self.save_argument = None;
+    }
+
     pub fn append(&mut self) {
         if self.is_last() {
             self.argument.push(String::default());
@@ -374,6 +384,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
     pub fn insert(&mut self, ch: char) {
         let input = &mut self.argument[self.selected];
         input.insert(self.cursor, ch);
+
         self.cursor += ch.len_utf8();
 
         if let Some(n) = self.find_position(&self.buffer) {

@@ -189,7 +189,8 @@ impl ManWith {
                                         f.set_mode(PromptMode::Prompt)
                                     },
                                     "file" => {
-                                        f.set_mode(PromptMode::File)
+                                        f.set_mode(PromptMode::File);
+                                        f.save_cache();
                                     },
                                     _ => {}
                                 }
