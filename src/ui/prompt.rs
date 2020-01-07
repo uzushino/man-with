@@ -363,6 +363,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
             }
         }
     }
+    
+    pub fn load_cache(&mut self) {
+        if let Some(cache) = &self.save_argument {
+            self.argument = cache.clone();
+        }
+    }
 
     pub fn save_cache(&mut self) {
         self.save_argument = Some(self.argument.clone());

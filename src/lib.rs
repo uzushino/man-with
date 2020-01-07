@@ -207,6 +207,9 @@ impl ManWith {
                             ui::prompt::PromptMode::File => {
                                 let line = f.current_buffer_line().clone();
                                 f.append_argument(line);
+                                f.load_cache();
+                                f.clear_cache();
+
                                 f.append();
                             },
                             _ => f.append(),
