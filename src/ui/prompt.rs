@@ -366,7 +366,9 @@ impl<T: Write + Send + Drop> Prompt<T> {
     
     pub fn load_cache(&mut self) {
         if let Some(cache) = &self.save_argument {
-            self.argument = cache.clone();
+            if !cache.is_empty() {
+                self.argument = cache.clone();
+            }
         }
     }
 
