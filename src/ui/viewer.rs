@@ -85,8 +85,7 @@ impl Viewer {
         let path = if let Some(base) = path {
             base
         } else {
-            std::env::current_dir()
-                .unwrap_or(std::path::PathBuf::from("."))
+            std::env::current_dir().unwrap_or(std::path::PathBuf::from("."))
         };
 
         for entry in walkdir::WalkDir::new(path) {

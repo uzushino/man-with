@@ -19,17 +19,14 @@ use std::thread::{self, JoinHandle};
 use failure::Error;
 use termion::raw::{IntoRawMode, RawTerminal};
 
-mod ui;
 mod event;
+mod ui;
 
 use self::event::Event;
 use self::ui::{
-    viewer::ShowType, 
-    Input, 
-    prompt::{
-        Prompt,
-        PromptMode,
-    }
+    prompt::{Prompt, PromptMode},
+    viewer::ShowType,
+    Input,
 };
 
 pub type CommandWithArgument = (String, Vec<String>);
@@ -84,7 +81,7 @@ impl ManWith {
 
         ui::cursor::horizon(&mut f.stdout, 1u64);
         ui::cursor::clear_line(&mut f.stdout);
-        
+
         f.write_history();
         f.flush()?;
 
@@ -136,13 +133,13 @@ impl ManWith {
                     Ok(Event::Key(ch)) => {
                         let _ = prompt.lock().and_then(|mut f| {
                             match f.get_mode() {
-                                ui::prompt::PromptMode::Choose => {},
+                                ui::prompt::PromptMode::Choose => {}
                                 ui::prompt::PromptMode::Prompt | ui::prompt::PromptMode::File => {
                                     match ch {
                                         ' ' => f.append(),
-                                        _ => f.insert(ch)
+                                        _ => f.insert(ch),
                                     }
-                                },
+                                }
                                 _ => {}
                             }
 
@@ -185,16 +182,14 @@ impl ManWith {
                             ui::prompt::PromptMode::Choose => {
                                 let a = f.current_input();
                                 match a.as_ref() {
-                                    "man" => {
-                                        f.set_mode(PromptMode::Prompt)
-                                    },
+                                    "man" => f.set_mode(PromptMode::Prompt),
                                     "file" => {
                                         f.set_mode(PromptMode::File);
                                         f.save_cache();
-                                    },
+                                    }
                                     _ => {}
                                 }
-                            },
+                            }
                             ui::prompt::PromptMode::Prompt => {
                                 if f.cursor > 0 {
                                     if !f.argument.is_empty() {
@@ -203,7 +198,7 @@ impl ManWith {
                                 } else if f.is_last() {
                                     break;
                                 }
-                            },
+                            }
                             ui::prompt::PromptMode::File => {
                                 let line = f.current_buffer_line().clone();
                                 f.append_argument(line);
@@ -211,10 +206,9 @@ impl ManWith {
                                 f.clear_cache();
 
                                 f.append();
-                            },
+                            }
                             _ => f.append(),
                         }
-                        
                     }
                     Ok(Event::Up) => {
                         let _ = prompt.lock().and_then(|mut f| {

@@ -1,11 +1,11 @@
-use std::io::{ Write, BufRead };
+use serde_derive::{Deserialize, Serialize};
+use std::io::{BufRead, Write};
 use std::path::PathBuf;
-use serde_derive::{ Serialize, Deserialize };
 
-use terminal_size::terminal_size;
-use termion;
 use super::viewer::{SourceType, Viewer};
 use crate::ui::cursor;
+use terminal_size::terminal_size;
+use termion;
 
 const PROMPT: &'static str = "> ";
 
@@ -19,7 +19,7 @@ pub enum PromptMode {
 
 #[derive(Serialize, Deserialize)]
 struct History {
-    command: String, 
+    command: String,
     argument: Vec<String>,
 }
 
@@ -33,14 +33,14 @@ impl History {
             .open(history)
             .and_then(|mut f| {
                 f.write_all(json.as_bytes())
-                .and_then(move |_| f.write(b"\n"))
+                    .and_then(move |_| f.write(b"\n"))
             })
             .unwrap();
     }
-    
+
     fn read(command: &String, history: &PathBuf) -> Vec<Vec<String>> {
         if !std::path::Path::new(history).exists() {
-            return Vec::default()
+            return Vec::default();
         }
 
         let f = std::fs::File::open(history);
@@ -59,7 +59,7 @@ impl History {
                             arguments.push(h.argument.clone())
                         }
                     }
-                    _ =>  {}
+                    _ => {}
                 }
             }
         }
@@ -86,7 +86,7 @@ pub struct Prompt<T: Write + Send + Drop> {
     history_path: Option<PathBuf>,
     histories: Vec<Vec<String>>,
     choose_pos: usize,
-    save_argument: Option<Vec<String>>
+    save_argument: Option<Vec<String>>,
 }
 
 fn is_args(ch: char) -> bool {
@@ -97,16 +97,21 @@ fn is_args(ch: char) -> bool {
 }
 
 impl<T: Write + Send + Drop> Prompt<T> {
-    pub fn new(stdout: T, command: &str, height: usize, help: bool, stdin: bool, history_path: Option<PathBuf>) -> Self {
+    pub fn new(
+        stdout: T,
+        command: &str,
+        height: usize,
+        help: bool,
+        stdin: bool,
+        history_path: Option<PathBuf>,
+    ) -> Self {
         let viewer = match (stdin, help) {
             (true, _) => Viewer::new(command, SourceType::Stdin),
             (_, true) => Viewer::new(command, SourceType::Help),
             _ => Viewer::new(command, SourceType::Man),
         };
-       
-        let buffer = { 
-            viewer.source() 
-        };
+
+        let buffer = { viewer.source() };
 
         Prompt {
             panel: vec![String::new(); height],
@@ -128,7 +133,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             histories: Vec::default(),
             mode: PromptMode::Prompt,
             choose_pos: 0,
-            save_argument: None
+            save_argument: None,
         }
     }
 
@@ -137,24 +142,25 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
         match self.mode {
             PromptMode::File => {
-                self.buffer = self.viewer.file_path(None)
+                self.buffer = self
+                    .viewer
+                    .file_path(None)
                     .split('\n')
                     .map(ToString::to_string)
                     .collect::<Vec<String>>()
-            },
-            PromptMode::Prompt => {
-                self.buffer = self.viewer.source()
-                    .split('\n')
-                    .map(ToString::to_string)
-                    .collect::<Vec<String>>()
-            },
-            PromptMode::Choose => {
-                self.buffer = vec![
-                    "man".to_owned(),
-                    "file".to_owned(),
-                ];
             }
-            _ => { }
+            PromptMode::Prompt => {
+                self.buffer = self
+                    .viewer
+                    .source()
+                    .split('\n')
+                    .map(ToString::to_string)
+                    .collect::<Vec<String>>()
+            }
+            PromptMode::Choose => {
+                self.buffer = vec!["man".to_owned(), "file".to_owned()];
+            }
+            _ => {}
         }
     }
 
@@ -162,12 +168,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
         &self.mode
     }
 
-    pub fn quit(&self) { 
-    }
+    pub fn quit(&self) {}
 
     pub fn write_history(&self) {
         if let Some(history) = &self.history_path {
-            let args = self.argument
+            let args = self
+                .argument
                 .clone()
                 .into_iter()
                 .filter(|s| !s.is_empty())
@@ -181,13 +187,11 @@ impl<T: Write + Send + Drop> Prompt<T> {
             }
         }
     }
-    
+
     pub fn current_input(&self) -> &String {
         match self.get_mode() {
-            PromptMode::Choose => {
-                &self.buffer[self.choose_pos]
-            },
-            _ => &self.argument[self.selected]
+            PromptMode::Choose => &self.buffer[self.choose_pos],
+            _ => &self.argument[self.selected],
         }
     }
 
@@ -246,7 +250,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 if self.buffer.len() > self.choose_pos + 1 {
                     self.choose_pos += 1;
                 }
-            },
+            }
             _ => {
                 let s = self.pos + 1;
                 let b = &self.buffer[s..self.buffer.len()];
@@ -266,7 +270,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 } else {
                     self.choose_pos -= 1
                 }
-            },
+            }
             _ => {
                 let e = self.pos - 1;
                 let mut b = self.buffer[0..e].to_vec();
@@ -293,14 +297,14 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.completion = None;
         }
     }
-    
+
     pub fn end_of_line(&mut self) {
         if !self.argument.is_empty() {
             self.selected = self.argument.len() - 1;
             self.cursor = self.argument[self.selected].len();
         }
     }
-    
+
     pub fn beginning_of_line(&mut self) {
         if !self.argument.is_empty() {
             self.selected = 0;
@@ -363,7 +367,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             }
         }
     }
-    
+
     pub fn load_cache(&mut self) {
         if let Some(cache) = &self.save_argument {
             if !cache.is_empty() {
@@ -399,7 +403,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.pos = n;
         }
     }
-    
+
     pub fn insert_line(&mut self, line: String) {
         self.buffer.push(line)
     }
@@ -476,12 +480,12 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 PromptMode::File => {
                     let input = &mut self.argument[self.selected];
                     input.push_str(self.buffer[self.pos].as_str());
-                },
+                }
                 _ => {
                     let input = &mut self.argument[self.selected];
                     input.push_str(&comp);
                     self.cursor = input.len();
-                },
+                }
             }
             self.completion = None;
             self.pos = 0;
@@ -558,7 +562,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     reset = termion::style::Reset
                 );
                 buffer[self.choose_pos] = decorated;
-            },
+            }
             PromptMode::File => {
                 let line = &self.buffer[self.pos];
                 let decorated = format!(
@@ -568,7 +572,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                     reset = termion::style::Reset
                 );
                 buffer[self.pos] = decorated;
-            },
+            }
             _ => {
                 let input = &self.argument[self.selected];
                 let decorated = format!(
@@ -594,8 +598,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
     pub fn history_back(&mut self) {
         if let Some(_) = self.history_path {
-            let hist = self.histories.iter().rev()
-                .collect::<Vec<_>>();
+            let hist = self.histories.iter().rev().collect::<Vec<_>>();
 
             if let Some(hist) = hist.get(self.history_index as usize) {
                 self.selected = (*hist).len() - 1;
@@ -635,7 +638,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 );
 
                 cursor::horizon(&mut self.stdout, l + self.cursor as u64 + 1);
-                
+
                 self.stdout.write(s.as_bytes())?;
                 self.completion = Some(comp);
 
@@ -685,14 +688,7 @@ mod test {
     fn end_of_line() {
         let stdout = std::io::stdout();
         let stdout = stdout.into_raw_mode().unwrap();
-        let mut prompt = Prompt::new(
-            stdout,
-            &"diff".to_owned(),
-            10,
-            false,
-            false,
-            None,
-        );
+        let mut prompt = Prompt::new(stdout, &"diff".to_owned(), 10, false, false, None);
 
         prompt.argument.push("abc".to_string());
         prompt.end_of_line();
