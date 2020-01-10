@@ -377,7 +377,9 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn save_cache(&mut self) {
-        self.save_argument = Some(self.argument.clone());
+        if !self.argument.is_empty() {
+            self.save_argument = Some(self.argument.clone());
+        }
     }
 
     pub fn clear_cache(&mut self) {
