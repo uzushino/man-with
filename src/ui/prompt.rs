@@ -87,6 +87,8 @@ pub struct Prompt<T: Write + Send + Drop> {
     histories: Vec<Vec<String>>,
     choose_pos: usize,
     save_argument: Option<Vec<String>>,
+
+    file_input: String,
 }
 
 fn is_args(ch: char) -> bool {
@@ -134,6 +136,7 @@ impl<T: Write + Send + Drop> Prompt<T> {
             mode: PromptMode::Prompt,
             choose_pos: 0,
             save_argument: None,
+            file_input: String::default(),
         }
     }
 
@@ -396,13 +399,26 @@ impl<T: Write + Send + Drop> Prompt<T> {
     }
 
     pub fn insert(&mut self, ch: char) {
-        let input = &mut self.argument[self.selected];
-        input.insert(self.cursor, ch);
+        match self.get_mode() {
+            PromptMode::Prompt => {
+                let input = &mut self.argument[self.selected];
+                input.insert(self.cursor, ch);
+                self.cursor += ch.len_utf8();
 
-        self.cursor += ch.len_utf8();
-
-        if let Some(n) = self.find_position(&self.buffer) {
-            self.pos = n;
+                if let Some(n) = self.find_position(&self.buffer) {
+                    self.pos = n;
+                }
+            },
+            _ => {
+                let input = &mut self.file_input;
+                input.insert(self.cursor, ch);
+                self.cursor += ch.len_utf8();
+                /*
+                if let Some(n) = self.find_position(&self.buffer) {
+                    self.pos = n;
+                }
+                */
+            }
         }
     }
 
@@ -512,15 +528,30 @@ impl<T: Write + Send + Drop> Prompt<T> {
         let mut full_command = vec![self.command.clone()];
         full_command.extend(self.argument.clone());
 
-        let p = format!(
-            "{prompt}{bold}{white}{command}{reset}",
-            prompt = Self::prompt(),
-            bold = termion::style::Bold,
-            white = termion::color::Fg(termion::color::White),
-            reset = termion::style::Reset,
-            command = full_command.join(" ")
-        );
-
+        let p = match self.get_mode() {
+            PromptMode::Prompt => {
+                format!(
+                    "{prompt}{bold}{white}{command}{reset}",
+                    prompt = Self::prompt(),
+                    bold = termion::style::Bold,
+                    white = termion::color::Fg(termion::color::White),
+                    reset = termion::style::Reset,
+                    command = full_command.join(" ")
+                )
+            }, 
+            _ => {
+                format!(
+                    "{prompt}{bold}{black}{command}{white}{command2}{reset}",
+                    prompt = Self::prompt(),
+                    bold = termion::style::Bold,
+                    black = termion::color::Fg(termion::color::Black),
+                    white = termion::color::Fg(termion::color::White),
+                    reset = termion::style::Reset,
+                    command = full_command.join(" "),
+                    command2 = self.file_input
+                )
+            },
+        };
         self.stdout.write(p.as_bytes())
     }
 
