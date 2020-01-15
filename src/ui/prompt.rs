@@ -351,8 +351,13 @@ impl<T: Write + Send + Drop> Prompt<T> {
             self.cursor -= ch.len_utf8();
             input.remove(self.cursor);
 
-            if let Some(n) = self.find_position(&self.buffer) {
-                self.pos = n;
+            match self.get_mode() {
+                PromptMode::Prompt => {
+                    if let Some(n) = self.find_position(&self.buffer) {
+                        self.pos = n;
+                    }
+                },
+                _ => {}
             }
         }
     }
