@@ -17,7 +17,7 @@ impl Input {
             let _ = match c? {
                 Key::Ctrl('a') => tx.send(Event::MoveTo(0))?,
                 Key::Ctrl('e') => tx.send(Event::MoveTo(-1))?,
-                Key::Ctrl('c') => tx.send(Event::Candidate(super::prompt::PromptMode::Choose))?,
+                //Key::Ctrl('c') => tx.send(Event::Candidate(super::prompt::PromptMode::Choose))?,
                 Key::Ctrl('r') => tx.send(Event::History)?,
                 Key::Ctrl('b') => tx.send(Event::Back)?,
                 Key::Ctrl('f') => tx.send(Event::Forward)?,
@@ -26,7 +26,7 @@ impl Input {
                 Key::Char('\n') => tx.send(Event::Enter)?,
                 Key::Char('\t') => tx.send(Event::Tab)?,
                 Key::Char(c) => tx.send(Event::Key(c))?,
-                Key::Esc => {
+                Key::Esc | Key::Ctrl('c') => {
                     tx.send(Event::Quit)?;
                     break;
                 }
