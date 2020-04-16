@@ -202,10 +202,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
         &self.buffer[self.pos]
     }
 
-    pub fn clear_input(&mut self) {
-        self.argument[self.selected] = String::default();
-    }
-
     pub fn read_history(&mut self) {
         if let Some(history) = &self.history_path {
             let histories = History::read(&self.command, history);
@@ -372,14 +368,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
 
             if let Some(n) = self.find_position(&self.buffer) {
                 self.pos = n;
-            }
-        }
-    }
-
-    pub fn load_cache(&mut self) {
-        if let Some(cache) = &self.save_argument {
-            if !cache.is_empty() {
-                self.argument = cache.clone();
             }
         }
     }
@@ -717,9 +705,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
 }
 
 mod test {
-    use std::os::unix::io::{FromRawFd, IntoRawFd};
-    use termion::raw::{IntoRawMode, RawTerminal};
-
     use super::*;
 
     #[test]
