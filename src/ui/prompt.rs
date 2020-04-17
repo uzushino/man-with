@@ -705,6 +705,9 @@ impl<T: Write + Send + Drop> Prompt<T> {
 }
 
 mod test {
+    use std::os::unix::io::{FromRawFd, IntoRawFd};
+    use termion::raw::{IntoRawMode, RawTerminal};
+
     use super::*;
 
     #[test]

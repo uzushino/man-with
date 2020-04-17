@@ -118,7 +118,7 @@ impl ManWith {
                 match rx.recv() {
                     Ok(Event::Quit) => {
                         // Quit message.
-                        let _ = prompt.lock().and_then(|mut f| {
+                        let _ = prompt.lock().and_then(|f| {
                             f.quit();
                             Ok(())
                         });
