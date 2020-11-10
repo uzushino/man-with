@@ -355,6 +355,8 @@ impl<T: Write + Send + Drop> Prompt<T> {
                 },
                 _ => {}
             }
+        } else if input.is_empty() {
+            self.selected -= 1;
         }
     }
 
@@ -705,7 +707,6 @@ impl<T: Write + Send + Drop> Prompt<T> {
 }
 
 mod test {
-    use std::os::unix::io::{FromRawFd, IntoRawFd};
     use termion::raw::{IntoRawMode, RawTerminal};
 
     use super::*;
