@@ -23,6 +23,7 @@ impl Input {
                 Key::Ctrl('f') => tx.send(Event::Forward)?,
                 Key::Ctrl('p') => tx.send(Event::Prev)?,
                 Key::Ctrl('n') => tx.send(Event::Next)?,
+                Key::Ctrl('d') => tx.send(Event::Delete)?,
                 Key::Char('\n') => tx.send(Event::Enter)?,
                 Key::Char('\t') => tx.send(Event::Tab)?,
                 Key::Char(c) => tx.send(Event::Key(c))?,
